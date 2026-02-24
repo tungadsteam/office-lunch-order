@@ -1,71 +1,35 @@
-# 📦 Office Lunch Order App
+# 🍱 Lunch Fund Management System
 
-App đặt cơm văn phòng với React Native (iOS) + Backend
+Hệ thống quản lý quỹ cơm trưa tập thể cho văn phòng.
+
+## 🎯 Tính năng chính
+
+- 🏦 **Quản lý quỹ:** Mỗi người có số dư riêng, nạp tiền qua Admin xác nhận
+- 📱 **Đặt cơm hàng ngày:** Real-time danh sách người đặt
+- 🎲 **Chọn người đi mua tự động:** 4 người/ngày (không trùng hôm trước)
+- 💰 **Quyết toán tự động:** Chia đều hóa đơn cho tất cả người đặt
+
+## 🛠 Tech Stack
+
+- **Mobile:** React Native (iOS)
+- **Backend:** Node.js + Express
+- **Database:** PostgreSQL
+- **Push Notifications:** APNs
 
 ## 📁 Cấu trúc Project
 
 ```
 office-lunch-order/
-├── OfficeLunchApp/          # React Native iOS app
-├── backend/                 # Backend API (Node.js/Express hoặc Python/FastAPI)
+├── mobile/          # React Native app
+├── backend/         # Node.js Express API
+├── BRIEF.md         # Chi tiết requirements
 └── README.md
 ```
 
-## 🎯 Tính năng chính
+## 📋 Tài liệu
 
-### Mobile App (React Native iOS)
-- Xem menu đặt cơm hàng ngày
-- Đặt cơm theo suất
-- Xem lịch sử đặt cơm
-- Thông báo nhắc nhở
-- Profile người dùng
-
-### Backend
-- API quản lý menu
-- API đặt cơm
-- Lưu trữ lịch sử đơn hàng
-- Authentication (JWT)
-- Database (PostgreSQL/MongoDB)
-
-## 🛠 Tech Stack
-
-**Frontend:**
-- React Native 0.84
-- TypeScript
-- React Navigation
-- Async Storage
-- Push Notifications (APNs)
-
-**Backend:**
-- TBD (Node.js/Python - do Architect quyết định)
-- Docker
-- PostgreSQL/MongoDB
-- REST API
-
-## 📋 Milestones
-
-1. **Setup & Architecture** - Thiết kế hệ thống
-2. **Backend API** - Phát triển backend
-3. **Mobile UI** - Giao diện app
-4. **Integration** - Tích hợp frontend-backend
-5. **Testing** - Test toàn bộ
-6. **Deployment** - Deploy production
-
-## 🚀 Quick Start
-
-### Mobile App
-```bash
-cd OfficeLunchApp
-npm install
-cd ios && pod install && cd ..
-npx react-native run-ios
-```
-
-### Backend
-```bash
-cd backend
-# TBD - chờ Architect thiết kế
-```
+- [BRIEF.md](./BRIEF.md) - Requirements chi tiết
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - Kiến trúc hệ thống (Coming soon)
 
 ## 👥 Team
 
@@ -75,6 +39,10 @@ cd backend
 - **Reviewer:** @eviewerCoder_Quick_bot
 - **Tester:** @TesterCoder_Quick_bot
 - **DevOps:** @DevopsQuick_bot
+
+## 🚀 Status
+
+🔄 **Phase: Architecture Design** - Đang chờ @ArchitectEd_bot thiết kế kiến trúc
 
 ## 📝 License
 
