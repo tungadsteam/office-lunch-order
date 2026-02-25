@@ -1,67 +1,25 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEYS } from './constants';
-import { User } from '../types';
+import { User } from '../types/user.types';
 
 export const storage = {
-  // Token
   async getToken(): Promise<string | null> {
-    try {
-      return await AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
-    } catch (error) {
-      console.error('Error getting token:', error);
-      return null;
-    }
+    return AsyncStorage.getItem(STORAGE_KEYS.TOKEN);
   },
-
   async setToken(token: string): Promise<void> {
-    try {
-      await AsyncStorage.setItem(STORAGE_KEYS.TOKEN, token);
-    } catch (error) {
-      console.error('Error setting token:', error);
-    }
+    await AsyncStorage.setItem(STORAGE_KEYS.TOKEN, token);
   },
-
   async removeToken(): Promise<void> {
-    try {
-      await AsyncStorage.removeItem(STORAGE_KEYS.TOKEN);
-    } catch (error) {
-      console.error('Error removing token:', error);
-    }
+    await AsyncStorage.removeItem(STORAGE_KEYS.TOKEN);
   },
-
-  // User
   async getUser(): Promise<User | null> {
-    try {
-      const userString = await AsyncStorage.getItem(STORAGE_KEYS.USER);
-      return userString ? JSON.parse(userString) : null;
-    } catch (error) {
-      console.error('Error getting user:', error);
-      return null;
-    }
+    const s = await AsyncStorage.getItem(STORAGE_KEYS.USER);
+    return s ? JSON.parse(s) : null;
   },
-
   async setUser(user: User): Promise<void> {
-    try {
-      await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
-    } catch (error) {
-      console.error('Error setting user:', error);
-    }
+    await AsyncStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
   },
-
-  async removeUser(): Promise<void> {
-    try {
-      await AsyncStorage.removeItem(STORAGE_KEYS.USER);
-    } catch (error) {
-      console.error('Error removing user:', error);
-    }
-  },
-
-  // Clear all
   async clear(): Promise<void> {
-    try {
-      await AsyncStorage.multiRemove([STORAGE_KEYS.TOKEN, STORAGE_KEYS.USER]);
-    } catch (error) {
-      console.error('Error clearing storage:', error);
-    }
+    await AsyncStorage.multiRemove([STORAGE_KEYS.TOKEN, STORAGE_KEYS.USER]);
   },
 };

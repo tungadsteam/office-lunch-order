@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from '../types';
-import { authApi } from '../api/auth';
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import { User } from '../types/user.types';
+import { authService } from '../api/services/authService';
 import { storage } from '../utils/storage';
 
 interface AuthContextType {
@@ -14,14 +14,13 @@ interface AuthContextType {
   refreshUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check stored token on mount
   useEffect(() => {
     checkAuth();
   }, []);
@@ -31,8 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const storedToken = await storage.getToken();
       if (storedToken) {
         setToken(storedToken);
-        // Verify token with server
-        const response = await authApi.getMe();
+        const response = await authService.getMe();
         if (response.success && response.data) {
           setUser(response.data);
         } else {
@@ -40,8 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setToken(null);
         }
       }
-    } catch (error) {
-      console.error('Auth check failed:', error);
+    } catch {
       await storage.clear();
       setToken(null);
     } finally {
@@ -50,28 +47,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    const response = await authApi.login({ email, password });
+    const response = await authService.login(email, password);
     if (response.success) {
-      const { user: userData, token: newToken } = response.data;
-      setUser(userData);
-      setToken(newToken);
-      await storage.setToken(newToken);
-      await storage.setUser(userData);
-    } else {
-      throw new Error('Login failed');
+      setUser(response.data.user);
+      setToken(response.data.token);
+      await storage.setToken(response.data.token);
+      await storage.setUser(response.data.user);
     }
   };
 
   const register = async (name: string, email: string, password: string) => {
-    const response = await authApi.register({ email, password, name });
+    const response = await authService.register(name, email, password);
     if (response.success) {
-      const { user: userData, token: newToken } = response.data;
-      setUser(userData);
-      setToken(newToken);
-      await storage.setToken(newToken);
-      await storage.setUser(userData);
-    } else {
-      throw new Error('Registration failed');
+      setUser(response.data.user);
+      setToken(response.data.token);
+      await storage.setToken(response.data.token);
+      await storage.setUser(response.data.user);
     }
   };
 
@@ -83,38 +74,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUser = async () => {
     try {
-      const response = await authApi.getMe();
+      const response = await authService.getMe();
       if (response.success && response.data) {
         setUser(response.data);
         await storage.setUser(response.data);
       }
-    } catch (error) {
-      console.error('Refresh user failed:', error);
-    }
+    } catch {}
   };
 
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isLoading,
-        isAuthenticated: !!user && !!token,
-        login,
-        register,
-        logout,
-        refreshUser,
-      }}
+      value={{ user, token, isLoading, isAuthenticated: !!user && !!token, login, register, logout, refreshUser }}
     >
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth(): AuthContextType {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 }
