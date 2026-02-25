@@ -87,11 +87,11 @@ CREATE TABLE transactions (
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   
   -- Transaction type
-  type VARCHAR(20) NOT NULL CHECK (type IN ('deposit', 'expense', 'refund', 'adjustment')),
+  type VARCHAR(20) NOT NULL CHECK (type IN ('deposit', 'income', 'expense', 'refund', 'adjustment')),
   amount DECIMAL(12, 2) NOT NULL,
   
   -- Deposit workflow
-  status VARCHAR(20) DEFAULT 'completed' CHECK (status IN ('pending', 'approved', 'rejected', 'completed')),
+  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'completed')),
   admin_id INTEGER REFERENCES users(id),
   approved_at TIMESTAMP,
   
@@ -198,18 +198,16 @@ CREATE TRIGGER update_settings_updated_at
 -- ==========================================
 
 -- Create admin user (password: Admin123!)
--- bcrypt hash for "Admin123!": $2b$10$N9qo8uLOickgx2ZMRZoMye3uJJxjdqfCVj6J5zN1Q8JZQxg5X.Fw2
 INSERT INTO users (email, password_hash, name, role, balance) VALUES
-  ('admin@lunchfund.com', '$2b$10$N9qo8uLOickgx2ZMRZoMye3uJJxjdqfCVj6J5zN1Q8JZQxg5X.Fw2', 'Admin User', 'admin', 0);
+  ('admin@lunchfund.com', '$2b$10$EGLpmzJhsjZ8Ac13V1Mf0OUZQjwE7el82gmED1D137aQn8AMVe1Wy', 'Admin User', 'admin', 0);
 
 -- Create test users (password: User123!)
--- bcrypt hash for "User123!": $2b$10$vI8aWBnW3fID.ZQ4/zo1G.q1lRps.9cGLcZEiGDMVr5yUP1KUOYTa
 INSERT INTO users (email, password_hash, name, balance) VALUES
-  ('user1@test.com', '$2b$10$vI8aWBnW3fID.ZQ4/zo1G.q1lRps.9cGLcZEiGDMVr5yUP1KUOYTa', 'Nguyen Van A', 100000),
-  ('user2@test.com', '$2b$10$vI8aWBnW3fID.ZQ4/zo1G.q1lRps.9cGLcZEiGDMVr5yUP1KUOYTa', 'Tran Thi B', 150000),
-  ('user3@test.com', '$2b$10$vI8aWBnW3fID.ZQ4/zo1G.q1lRps.9cGLcZEiGDMVr5yUP1KUOYTa', 'Le Van C', 80000),
-  ('user4@test.com', '$2b$10$vI8aWBnW3fID.ZQ4/zo1G.q1lRps.9cGLcZEiGDMVr5yUP1KUOYTa', 'Pham Thi D', 200000),
-  ('user5@test.com', '$2b$10$vI8aWBnW3fID.ZQ4/zo1G.q1lRps.9cGLcZEiGDMVr5yUP1KUOYTa', 'Hoang Van E', 120000);
+  ('user1@test.com', '$2b$10$QySebHGefNvjK1pHqdq5LeGLsr380/f1k6m2U0JoBdKVWcLk4Moxa', 'Nguyen Van A', 100000),
+  ('user2@test.com', '$2b$10$QySebHGefNvjK1pHqdq5LeGLsr380/f1k6m2U0JoBdKVWcLk4Moxa', 'Tran Thi B', 150000),
+  ('user3@test.com', '$2b$10$QySebHGefNvjK1pHqdq5LeGLsr380/f1k6m2U0JoBdKVWcLk4Moxa', 'Le Van C', 80000),
+  ('user4@test.com', '$2b$10$QySebHGefNvjK1pHqdq5LeGLsr380/f1k6m2U0JoBdKVWcLk4Moxa', 'Pham Thi D', 200000),
+  ('user5@test.com', '$2b$10$QySebHGefNvjK1pHqdq5LeGLsr380/f1k6m2U0JoBdKVWcLk4Moxa', 'Hoang Van E', 120000);
 
 COMMENT ON TABLE users IS 'User accounts with balance and rotation tracking';
 COMMENT ON TABLE lunch_sessions IS 'Daily lunch sessions with buyer selection and settlement';

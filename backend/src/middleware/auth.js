@@ -1,6 +1,14 @@
 const jwt = require('jsonwebtoken');
 const pool = require('../config/database');
 
+// Validate JWT_SECRET exists
+if (!process.env.JWT_SECRET) {
+  console.error('❌ FATAL: JWT_SECRET environment variable is not set!');
+  process.exit(1);
+}
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
 /**
  * Authenticate user via JWT token
  */
@@ -19,7 +27,7 @@ async function authenticate(req, res, next) {
     const token = authHeader.split(' ')[1];
     
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret-key');
+    const decoded = jwt.verify(token, JWT_SECRET);
     
     // Get user from database
     const result = await pool.query(
@@ -100,7 +108,7 @@ async function optionalAuth(req, res, next) {
     
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret-key');
+      const decoded = jwt.verify(token, JWT_SECRET);
       
       const result = await pool.query(
         'SELECT id, email, name, role, balance FROM users WHERE id = $1 AND is_active = true',

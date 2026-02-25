@@ -223,6 +223,14 @@ class OrderController {
       const payerId = req.user.id;
       const today = moment().format('YYYY-MM-DD');
       
+      // Validate total_bill
+      if (!total_bill || total_bill <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Total bill must be greater than 0'
+        });
+      }
+      
       const sessionResult = await pool.query(
         'SELECT * FROM lunch_sessions WHERE session_date = $1',
         [today]
@@ -279,7 +287,7 @@ class OrderController {
           ls.total_bill,
           ls.amount_per_person,
           lo.created_at as joined_at,
-          CASE WHEN ls.buyer_ids @> ARRAY[$1] THEN true ELSE false END as was_buyer,
+          CASE WHEN ls.buyer_ids @> ARRAY[$1::integer] THEN true ELSE false END as was_buyer,
           CASE WHEN ls.payer_id = $1 THEN true ELSE false END as was_payer
         FROM lunch_orders lo
         JOIN lunch_sessions ls ON lo.session_id = ls.id
