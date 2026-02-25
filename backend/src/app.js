@@ -33,14 +33,14 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // Higher limit for dev
-  message: 'Too many requests from this IP, please try again later.'
-});
-
-app.use('/api/', limiter);
+// Rate limiting - DISABLED for development
+// TODO: Re-enable for production deployment
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000,
+//   max: 100,
+//   message: 'Too many requests from this IP, please try again later.'
+// });
+// app.use('/api/', limiter);
 
 // Request logging (development only)
 if (process.env.NODE_ENV === 'development') {
