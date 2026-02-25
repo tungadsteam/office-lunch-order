@@ -223,6 +223,14 @@ class OrderController {
       const payerId = req.user.id;
       const today = moment().format('YYYY-MM-DD');
       
+      // Validate total_bill
+      if (!total_bill || total_bill <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Total bill must be greater than 0'
+        });
+      }
+      
       const sessionResult = await pool.query(
         'SELECT * FROM lunch_sessions WHERE session_date = $1',
         [today]

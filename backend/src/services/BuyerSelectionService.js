@@ -148,12 +148,15 @@ class BuyerSelectionService {
       `, [maxIndex + 1, sessionDate, buyer.user_id]);
     }
     
-    // Check if everyone has been selected at least once → Reset rotation
-    const minResult = await client.query('SELECT MIN(rotation_index) as min_index FROM users WHERE is_active = true');
-    const minIndex = minResult.rows[0].min_index || 0;
+    // Check if everyone has been selected (rotation cycle complete) → Reset rotation
+    const statsResult = await client.query(`
+      SELECT MIN(rotation_index) as min_index, MAX(rotation_index) as max_index 
+      FROM users WHERE is_active = true
+    `);
+    const { min_index, max_index } = statsResult.rows[0];
     
-    // If minimum rotation_index >= total participants, reset everyone to 0
-    if (minIndex >= totalParticipants && totalParticipants > 0) {
+    // If all users have same rotation_index (and it's not 0), cycle is complete
+    if (min_index === max_index && min_index > 0) {
       console.log('🔄 Rotation cycle complete. Resetting rotation_index...');
       await client.query('UPDATE users SET rotation_index = 0 WHERE is_active = true');
     }

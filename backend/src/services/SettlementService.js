@@ -92,7 +92,7 @@ class SettlementService {
       
       await client.query(`
         INSERT INTO transactions (user_id, type, amount, status, order_id, note, metadata)
-        VALUES ($1, 'expense', $2, 'completed', $3, $4, $5)
+        VALUES ($1, 'income', $2, 'completed', $3, $4, $5)
       `, [
         payerId,
         totalBill, // Positive (reimbursement)

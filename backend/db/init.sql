@@ -87,11 +87,11 @@ CREATE TABLE transactions (
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   
   -- Transaction type
-  type VARCHAR(20) NOT NULL CHECK (type IN ('deposit', 'expense', 'refund', 'adjustment')),
+  type VARCHAR(20) NOT NULL CHECK (type IN ('deposit', 'income', 'expense', 'refund', 'adjustment')),
   amount DECIMAL(12, 2) NOT NULL,
   
   -- Deposit workflow
-  status VARCHAR(20) DEFAULT 'completed' CHECK (status IN ('pending', 'approved', 'rejected', 'completed')),
+  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'completed')),
   admin_id INTEGER REFERENCES users(id),
   approved_at TIMESTAMP,
   
