@@ -25,7 +25,13 @@ export default function HistoryPage() {
   const loadOrders = async (newOffset = 0) => {
     try {
       const res: any = await ordersService.getHistory(limit, newOffset);
-      const items = res.data?.orders || res.data || [];
+      const raw = res.data?.orders || res.data || [];
+      // Normalize field names from backend
+      const items = (Array.isArray(raw) ? raw : []).map((o: any) => ({
+        ...o,
+        id: o.id || o.session_id,
+        date: o.date || o.session_date,
+      }));
       if (newOffset === 0) {
         setOrders(items);
       } else {
