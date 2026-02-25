@@ -11,6 +11,8 @@ const authRoutes = require('./routes/auth');
 const orderRoutes = require('./routes/orders');
 const transactionRoutes = require('./routes/transactions');
 const adminRoutes = require('./routes/admin');
+const adminSnackRoutes = require('./routes/adminSnacks');
+const userSnackRoutes = require('./routes/userSnacks');
 
 const app = express();
 
@@ -66,6 +68,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin/snacks', adminSnackRoutes);
+app.use('/api/snacks', userSnackRoutes);
 
 // Welcome route
 app.get('/', (req, res) => {

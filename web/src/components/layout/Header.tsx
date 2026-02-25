@@ -8,9 +8,9 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { href: '/', icon: '🏠', label: 'Dashboard' },
-  { href: '/order', icon: '🍱', label: 'Đặt cơm' },
-  { href: '/history', icon: '📜', label: 'Lịch sử' },
+  { href: '/', icon: '🏠', label: 'Home' },
+  { href: '/order', icon: '🍱', label: 'Cơm' },
+  { href: '/snacks', icon: '🍕', label: 'Snack' },
   { href: '/balance', icon: '💰', label: 'Nạp tiền' },
 ];
 

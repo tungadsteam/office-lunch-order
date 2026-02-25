@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { href: '/', icon: '🏠', label: 'Dashboard' },
   { href: '/order', icon: '🍱', label: 'Đặt cơm hôm nay' },
+  { href: '/snacks', icon: '🍕', label: 'Đồ ăn vặt' },
   { href: '/history', icon: '📜', label: 'Lịch sử' },
   { href: '/balance', icon: '💰', label: 'Số dư & Nạp tiền' },
 ];
@@ -15,6 +16,7 @@ const navItems = [
 const adminItems = [
   { href: '/admin', icon: '📊', label: 'Admin Dashboard' },
   { href: '/admin/deposits', icon: '✅', label: 'Duyệt nạp tiền' },
+  { href: '/admin/snacks', icon: '🍕', label: 'Quản lý đồ ăn vặt' },
   { href: '/admin/users', icon: '👥', label: 'Quản lý users' },
 ];
 

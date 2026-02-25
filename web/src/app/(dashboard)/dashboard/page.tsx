@@ -7,16 +7,22 @@ import { QuickActions } from '@/components/dashboard/QuickActions';
 import { Card } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
 import { transactionsService } from '@/lib/api/services/transactions';
+import { snacksService } from '@/lib/api/services/snacks';
 import { formatCurrency, formatShortDate } from '@/lib/utils/formatters';
 import { Transaction } from '@/lib/types/transaction';
+import Link from 'next/link';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
   const [recentTx, setRecentTx] = useState<Transaction[]>([]);
+  const [hasSnackMenu, setHasSnackMenu] = useState(false);
 
   useEffect(() => {
     transactionsService.getHistory(5).then((res: any) => {
       setRecentTx(res.data?.transactions || res.data || []);
+    }).catch(() => {});
+    snacksService.getActiveMenu().then((res: any) => {
+      setHasSnackMenu(!!res.data);
     }).catch(() => {});
   }, []);
 
@@ -26,6 +32,15 @@ export default function DashboardPage() {
         <h2 className="text-2xl font-bold">Xin chào, {user?.name} 👋</h2>
         <p className="text-gray-500 mt-1">Chào mừng bạn đến với Lunch Fund Manager</p>
       </div>
+
+      {hasSnackMenu && (
+        <Link href="/snacks">
+          <Card className="p-4 bg-amber-50 border-amber-200 hover:shadow-md transition-shadow cursor-pointer">
+            <p className="text-lg font-semibold">🍕 Menu đồ ăn vặt đang mở!</p>
+            <p className="text-sm text-amber-700">Bấm để xem và đặt đồ ăn →</p>
+          </Card>
+        </Link>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <BalanceCard />
