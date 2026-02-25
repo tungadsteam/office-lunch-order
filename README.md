@@ -28,8 +28,16 @@ office-lunch-order/
 
 ## 📋 Tài liệu
 
+### 📖 Requirements & Architecture
 - [BRIEF.md](./BRIEF.md) - Requirements chi tiết
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - Kiến trúc hệ thống (Coming soon)
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - Kiến trúc hệ thống
+
+### 🚀 Deployment & Testing
+- **[QUICK_START.md](./QUICK_START.md)** - ⚡ Test backend trong 5 phút
+- [TESTING_GUIDE.md](./TESTING_GUIDE.md) - Hướng dẫn test đầy đủ
+- [API_ENDPOINTS.md](./API_ENDPOINTS.md) - API documentation (18 endpoints)
+- [DEPLOYMENT.md](./DEPLOYMENT.md) - Deployment guide
+- [Lunch_Fund_API.postman_collection.json](./Lunch_Fund_API.postman_collection.json) - Postman collection
 
 ## 👥 Team
 
@@ -42,7 +50,28 @@ office-lunch-order/
 
 ## 🚀 Status
 
-🔄 **Phase: Architecture Design** - Đang chờ @ArchitectEd_bot thiết kế kiến trúc
+✅ **Backend Deployed & Ready for Testing!**
+
+**Backend URL:** http://localhost:3000  
+**Status:** 🟢 HEALTHY
+
+### 🧪 Quick Test
+
+```bash
+# Health check
+curl http://localhost:3000/health
+
+# Login
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user1@test.com","password":"User123!"}'
+```
+
+**Test Accounts:**
+- Admin: `admin@lunchfund.com` / `Admin123!`
+- Users: `user1@test.com` to `user5@test.com` / `User123!`
+
+👉 **[Start Testing Now →](./QUICK_START.md)**
 
 ## 📝 License
 
