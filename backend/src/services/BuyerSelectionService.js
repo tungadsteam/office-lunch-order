@@ -57,7 +57,7 @@ class BuyerSelectionService {
       // 3. Get yesterday's buyers
       const yesterdayResult = await client.query(`
         SELECT buyer_ids FROM lunch_sessions 
-        WHERE session_date = $1 - INTERVAL '1 day'
+        WHERE session_date = ($1::date - INTERVAL '1 day')::date
         LIMIT 1
       `, [session.session_date]);
       

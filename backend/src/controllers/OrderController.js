@@ -287,7 +287,7 @@ class OrderController {
           ls.total_bill,
           ls.amount_per_person,
           lo.created_at as joined_at,
-          CASE WHEN ls.buyer_ids @> ARRAY[$1] THEN true ELSE false END as was_buyer,
+          CASE WHEN ls.buyer_ids @> ARRAY[$1::integer] THEN true ELSE false END as was_buyer,
           CASE WHEN ls.payer_id = $1 THEN true ELSE false END as was_payer
         FROM lunch_orders lo
         JOIN lunch_sessions ls ON lo.session_id = ls.id
