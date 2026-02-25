@@ -19,7 +19,7 @@ export default function OrderTodayScreen({ navigation }: any) {
   const [refreshing, setRefreshing] = useState(false);
 
   const isBuyer = session?.buyer_ids?.includes(user?.id || 0);
-  const canOrder = session?.status === 'ordering';
+  const canOrder = session?.status === 'ordering' || session?.status === 'open';
 
   const handleJoin = async () => {
     setActionLoading(true);
@@ -73,8 +73,17 @@ export default function OrderTodayScreen({ navigation }: any) {
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
+        {/* No session message */}
+        {!session && (
+          <Card>
+            <Text style={{ textAlign: 'center', fontSize: 16, color: '#666', padding: 20 }}>
+              📭 Chưa có phiên đặt cơm hôm nay.{'\n'}Admin cần tạo phiên mới để bắt đầu đặt.
+            </Text>
+          </Card>
+        )}
+
         {/* Session Info */}
-        <Card>
+        {session && <Card>
           <View style={styles.headerRow}>
             <Text style={styles.date}>
               {session ? formatDate(session.date) : 'Hôm nay'}
@@ -89,7 +98,7 @@ export default function OrderTodayScreen({ navigation }: any) {
           <Text style={styles.count}>{session?.total_participants || 0} người đã đặt</Text>
 
           {canOrder && <Text style={styles.deadline}>⏰ Chốt sổ lúc 11:30 AM</Text>}
-        </Card>
+        </Card>}
 
         {/* Join/Leave Button */}
         {canOrder && (

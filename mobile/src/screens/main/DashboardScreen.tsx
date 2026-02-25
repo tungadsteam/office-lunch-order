@@ -53,7 +53,7 @@ export default function DashboardScreen({ navigation }: any) {
         <BalanceCard
           balance={user?.balance || 0}
           onDeposit={() => navigation.navigate('Deposit')}
-          onHistory={() => navigation.navigate('TransactionHistory')}
+          onHistory={() => navigation.navigate('History')}
         />
 
         {/* Quick Actions */}
