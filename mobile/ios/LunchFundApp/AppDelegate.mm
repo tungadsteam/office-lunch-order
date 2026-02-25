@@ -22,7 +22,12 @@
 - (NSURL *)getBundleURL
 {
 #if DEBUG
-  return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
+  NSURL *bundleURL = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
+  if (!bundleURL) {
+    NSLog(@"⚠️ Metro bundler not available. Run: npx react-native start");
+    return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
+  }
+  return bundleURL;
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif
