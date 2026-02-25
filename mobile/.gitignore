@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# React Native
+ios/Pods/
+ios/build/
+android/build/
+android/app/build/
+android/.gradle/
+
+# Bundle artifacts
+*.jsbundle
+
+# CocoaPods
+/ios/Pods/
+
+# Env
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Metro
+.metro-health-check*
+
+# Testing
+coverage/
