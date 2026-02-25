@@ -36,7 +36,9 @@ office-lunch-order/
 - **[QUICK_START.md](./QUICK_START.md)** - ⚡ Test backend trong 5 phút
 - [TESTING_GUIDE.md](./TESTING_GUIDE.md) - Hướng dẫn test đầy đủ
 - [API_ENDPOINTS.md](./API_ENDPOINTS.md) - API documentation (18 endpoints)
-- [DEPLOYMENT.md](./DEPLOYMENT.md) - Deployment guide
+- [DEPLOYMENT.md](./DEPLOYMENT.md) - Backend deployment guide
+- [MOBILE_DEPLOYMENT.md](./MOBILE_DEPLOYMENT.md) - Mobile deployment guide
+- [MOBILE_ARCHITECTURE.md](./MOBILE_ARCHITECTURE.md) - Mobile architecture
 - [Lunch_Fund_API.postman_collection.json](./Lunch_Fund_API.postman_collection.json) - Postman collection
 
 ## 👥 Team
@@ -50,12 +52,19 @@ office-lunch-order/
 
 ## 🚀 Status
 
-✅ **Backend Deployed & Ready for Testing!**
+### ✅ Backend - Deployed & Running
+**URL:** http://localhost:3000  
+**Status:** 🟢 HEALTHY  
+**API Endpoints:** 18 working
 
-**Backend URL:** http://localhost:3000  
-**Status:** 🟢 HEALTHY
+### ✅ Mobile - Merged to Main
+**Platform:** iOS (React Native)  
+**Status:** 🟡 BUILD VERIFIED (awaiting runtime testing)  
+**Screens:** 8 implemented
 
-### 🧪 Quick Test
+---
+
+### 🧪 Quick Test Backend
 
 ```bash
 # Health check
@@ -67,11 +76,21 @@ curl -X POST http://localhost:3000/api/auth/login \
   -d '{"email":"user1@test.com","password":"User123!"}'
 ```
 
+### 📱 Run Mobile App
+
+```bash
+cd mobile
+npm install
+cd ios && pod install && cd ..
+npm run ios
+```
+
 **Test Accounts:**
 - Admin: `admin@lunchfund.com` / `Admin123!`
 - Users: `user1@test.com` to `user5@test.com` / `User123!`
 
-👉 **[Start Testing Now →](./QUICK_START.md)**
+👉 **[Backend Testing Guide →](./QUICK_START.md)**  
+👉 **[Mobile Deployment Guide →](./MOBILE_DEPLOYMENT.md)**
 
 ## 📝 License
 
