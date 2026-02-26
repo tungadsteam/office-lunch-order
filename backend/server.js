@@ -1,4 +1,5 @@
 const app = require('./src/app');
+const { initCronJobs } = require('./src/cron/lunch-cron');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 3000;
@@ -13,6 +14,9 @@ const server = app.listen(PORT, () => {
   console.log(`📡 API Base URL: http://localhost:${PORT}/api`);
   console.log(`❤️  Health Check: http://localhost:${PORT}/health`);
   console.log('==========================================');
+
+  // Start cron jobs after server is up
+  initCronJobs();
 });
 
 // Graceful shutdown
