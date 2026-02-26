@@ -46,16 +46,30 @@ services:
       retries: 3
       start_period: 40s
 
-  # pgAdmin (Optional - for database management)
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: lunch-fund-pgadmin
+  # Web (Next.js)
+  web:
+    build:
+      context: ./web
+    container_name: lunch-fund-web
     restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@lunchfund.com
-      PGADMIN_DEFAULT_PASSWORD: admin
     ports:
-      - "5050:80"
+      - "3001:3000"
+    environment:
+      NODE_ENV: production
+      # Used by the frontend to call the API. In the browser it must be reachable from the client.
+      # For same-host deployments, you can set this to your public domain (e.g. https://api.example.com).
+      # For local docker-compose dev, the container DNS name works for server-side requests.
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://backend:3000}
+    depends_on:
+      - backend
+
+  # Adminer - lightweight database management UI
+  adminer:
+    image: adminer:latest
+    container_name: lunch-fund-adminer
+    restart: unless-stopped
+    ports:
+      - "5050:8080"
     depends_on:
       - postgres
 

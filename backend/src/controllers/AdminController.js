@@ -163,6 +163,47 @@ class AdminController {
   }
   
   /**
+   * GET /admin/settings
+   * Get all admin settings
+   */
+  async getSettings(req, res) {
+    try {
+      const result = await pool.query(
+        'SELECT key, value, description, updated_at FROM admin_settings ORDER BY key'
+      );
+      res.json({ success: true, data: result.rows });
+    } catch (error) {
+      console.error('Get settings error:', error);
+      res.status(500).json({ success: false, message: 'Failed to get settings' });
+    }
+  }
+
+  /**
+   * PUT /admin/settings/:key
+   * Update a single admin setting by key
+   */
+  async updateSetting(req, res) {
+    try {
+      const { key } = req.params;
+      const { value } = req.body;
+
+      const result = await pool.query(
+        'UPDATE admin_settings SET value = $1, updated_at = NOW() WHERE key = $2 RETURNING *',
+        [value, key]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ success: false, message: 'Setting not found' });
+      }
+
+      res.json({ success: true, data: result.rows[0] });
+    } catch (error) {
+      console.error('Update setting error:', error);
+      res.status(500).json({ success: false, message: 'Failed to update setting' });
+    }
+  }
+
+  /**
    * PUT /admin/users/:id/balance
    * Adjust user balance manually (Admin only)
    */
