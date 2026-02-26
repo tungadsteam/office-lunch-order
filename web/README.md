@@ -1,3 +1,11 @@
+## Docker notes
+
+- This app expects `NEXT_PUBLIC_API_BASE_URL` (preferred) or `NEXT_PUBLIC_API_URL` (legacy) to be set.
+- `NEXT_PUBLIC_*` variables are **inlined at build time** by Next.js.
+  - When using `docker compose`, pass it via `web.build.args` (already wired in `../docker-compose.yml`).
+
+---
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

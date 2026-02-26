@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+// Prefer NEXT_PUBLIC_API_BASE_URL (new name) but keep backwards compatibility with NEXT_PUBLIC_API_URL.
+// NOTE: NEXT_PUBLIC_* vars are inlined at build time by Next.js.
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  'http://localhost:3000';
 
 const client = axios.create({
   baseURL: `${API_BASE_URL}/api`,
