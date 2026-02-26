@@ -4,6 +4,7 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { adminService } from '../../api/services/adminService';
 import { orderService } from '../../api/services/orderService';
+import { reimbursementService } from '../../api/services/reimbursementService';
 import { AdminStats } from '../../types/api.types';
 import { colors } from '../../styles/colors';
 import { spacing } from '../../styles/spacing';
@@ -13,14 +14,19 @@ import { Alert } from 'react-native';
 
 export default function AdminDashboardScreen({ navigation }: any) {
   const [stats, setStats] = useState<AdminStats | null>(null);
+  const [pendingReimbCount, setPendingReimbCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => { loadStats(); }, []);
 
   const loadStats = async () => {
     try {
-      const r = await adminService.getStats();
-      if (r.success && r.data) setStats(r.data);
+      const [statsRes, reimbRes] = await Promise.all([
+        adminService.getStats(),
+        reimbursementService.getPending(),
+      ]);
+      if (statsRes.success && statsRes.data) setStats(statsRes.data);
+      if (reimbRes.success && reimbRes.data) setPendingReimbCount(reimbRes.data.length);
     } catch {}
   };
 
@@ -47,7 +53,11 @@ export default function AdminDashboardScreen({ navigation }: any) {
         </View>
         <View style={styles.grid}>
           <Card style={styles.stat}><Text style={styles.num}>{stats?.sessions.settled || 0}</Text><Text style={styles.lbl}>Settled</Text></Card>
-          <Card style={[styles.stat, stats?.pending_deposits.count ? { backgroundColor: '#FFF3CD' } : {}]}><Text style={styles.num}>{stats?.pending_deposits.count || 0}</Text><Text style={styles.lbl}>Chờ duyệt</Text></Card>
+          <Card style={[styles.stat, stats?.pending_deposits.count ? { backgroundColor: '#FFF3CD' } : {}]}><Text style={styles.num}>{stats?.pending_deposits.count || 0}</Text><Text style={styles.lbl}>Chờ nạp tiền</Text></Card>
+        </View>
+        <View style={styles.grid}>
+          <Card style={[styles.stat, pendingReimbCount > 0 ? { backgroundColor: '#FFE8D6' } : {}]}><Text style={styles.num}>{pendingReimbCount}</Text><Text style={styles.lbl}>Chờ hoàn tiền</Text></Card>
+          <Card style={styles.stat}><Text style={styles.num}> </Text><Text style={styles.lbl}> </Text></Card>
         </View>
 
         {stats?.today && (
@@ -62,6 +72,12 @@ export default function AdminDashboardScreen({ navigation }: any) {
             <Button title="🎯 Chọn 4 người đi mua" onPress={handleSelectBuyers} style={styles.btn} />
           )}
           <Button title="📋 Duyệt nạp tiền" variant="outline" onPress={() => navigation.navigate('PendingDeposits')} style={styles.btn} />
+          <Button
+            title={`💸 Duyệt hoàn tiền${pendingReimbCount > 0 ? ` (${pendingReimbCount})` : ''}`}
+            variant={pendingReimbCount > 0 ? 'primary' : 'outline'}
+            onPress={() => navigation.navigate('PendingReimbursements')}
+            style={styles.btn}
+          />
           <Button title="👥 Quản lý users" variant="outline" onPress={() => navigation.navigate('UsersList')} style={styles.btn} />
         </Card>
       </ScrollView>

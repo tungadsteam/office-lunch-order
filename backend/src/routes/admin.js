@@ -42,6 +42,24 @@ router.put('/bank-info',
 );
 
 /**
+ * GET /admin/settings
+ * Get all admin settings
+ */
+router.get('/settings',
+  asyncHandler(AdminController.getSettings.bind(AdminController))
+);
+
+/**
+ * PUT /admin/settings/:key
+ * Update a single setting by key
+ */
+router.put('/settings/:key',
+  [body('value').notEmpty().withMessage('Value is required')],
+  validate,
+  asyncHandler(AdminController.updateSetting.bind(AdminController))
+);
+
+/**
  * GET /admin/users
  * Get all users
  */
