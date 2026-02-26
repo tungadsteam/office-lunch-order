@@ -22,13 +22,13 @@ export const metadata: Metadata = {
   },
   themeColor: "#007aff",
   icons: {
-    // iOS Home Screen icon
-    apple: "/apple-touch-icon.png",
+    // iOS Home Screen icon (use versioned filename to avoid iOS cache)
+    apple: "/apple-touch-icon-180.png",
     // Browser tab / address bar icon
     icon: [
       { url: "/favicon.ico" },
-      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/icon-192-v2.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512-v2.png", sizes: "512x512", type: "image/png" },
     ],
   },
 };
