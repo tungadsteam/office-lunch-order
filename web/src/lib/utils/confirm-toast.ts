@@ -15,15 +15,19 @@ interface ConfirmToastOptions {
 export function confirmToast(title: string, options: ConfirmToastOptions): void {
   const { description, confirmLabel = 'Xác nhận', cancelLabel = 'Hủy', onConfirm } = options;
 
-  toast(title, {
+  const toastId = toast(title, {
     description,
     duration: Infinity,
     action: {
       label: confirmLabel,
-      onClick: onConfirm,
+      onClick: () => {
+        onConfirm();
+        toast.dismiss(toastId);
+      },
     },
     cancel: {
       label: cancelLabel,
+      onClick: () => toast.dismiss(toastId),
     },
   });
 }

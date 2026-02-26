@@ -46,6 +46,26 @@ services:
       retries: 3
       start_period: 40s
 
+  # Web (Next.js)
+  web:
+    build:
+      context: ./web
+      args:
+        # NEXT_PUBLIC_* vars are inlined at build time by Next.js.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.quickmagic.cloud}
+    container_name: lunch-fund-web
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      NODE_ENV: production
+      # Used by the frontend in the browser; must be reachable from the user's device.
+      # - Local compose: backend is published on localhost:3000
+      # - Production: set to your public API domain (e.g. https://api.example.com)
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.quickmagic.cloud}
+    depends_on:
+      - backend
+
   # Adminer - lightweight database management UI
   adminer:
     image: adminer:latest
