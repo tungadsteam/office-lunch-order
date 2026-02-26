@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/lib/store/authStore';
 import { transactionsService } from '@/lib/api/services/transactions';
+import { adminService } from '@/lib/api/services/admin';
 import { formatCurrency, formatDateTime } from '@/lib/utils/formatters';
 import { Transaction } from '@/lib/types/transaction';
 import { toast } from 'sonner';
@@ -18,6 +19,7 @@ export default function BalancePage() {
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [deposits, setDeposits] = useState<Transaction[]>([]);
+  const [bankInfo, setBankInfo] = useState<Record<string, string>>({});
 
   const loadDeposits = () => {
     transactionsService.getHistory(20, 0, 'deposit').then((res: any) => {
@@ -25,7 +27,12 @@ export default function BalancePage() {
     }).catch(() => {});
   };
 
-  useEffect(() => { loadDeposits(); }, []);
+  useEffect(() => {
+    loadDeposits();
+    adminService.getBankInfo().then((res: any) => {
+      setBankInfo(res.data || {});
+    }).catch(() => {});
+  }, []);
 
   const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,23 +82,25 @@ export default function BalancePage() {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-500">Ngân hàng:</span>
-            <span className="font-medium">Vietcombank</span>
+            <span className="font-medium">{bankInfo.bank_name || '—'}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Số TK:</span>
             <div className="flex items-center gap-2">
-              <span className="font-mono font-medium">1234567890</span>
-              <button
-                onClick={() => { navigator.clipboard.writeText('1234567890'); toast.success('Đã copy!'); }}
-                className="text-blue-600 text-xs hover:underline"
-              >
-                Copy
-              </button>
+              <span className="font-mono font-medium">{bankInfo.bank_account_number || '—'}</span>
+              {bankInfo.bank_account_number && (
+                <button
+                  onClick={() => { navigator.clipboard.writeText(bankInfo.bank_account_number); toast.success('Đã copy!'); }}
+                  className="text-blue-600 text-xs hover:underline"
+                >
+                  Copy
+                </button>
+              )}
             </div>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Chủ TK:</span>
-            <span className="font-medium">NGUYEN VAN A</span>
+            <span className="font-medium">{bankInfo.bank_account_name || '—'}</span>
           </div>
         </div>
       </Card>
