@@ -5,7 +5,7 @@ const aiService = require('../services/aiService');
 const pool = require('../config/database');
 
 // Upload image & extract menu with fake AI
-router.post('/upload', authenticate, requireAdmin, async (req, res) => {
+router.post("/upload", authenticate, async (req, res) => {
   try {
     const { imageUrl } = req.body;
     if (!imageUrl) {
@@ -21,7 +21,7 @@ router.post('/upload', authenticate, requireAdmin, async (req, res) => {
 });
 
 // Create menu with items
-router.post('/menus', authenticate, requireAdmin, async (req, res) => {
+router.post('/menus', authenticate, async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -217,6 +217,41 @@ router.post('/menus/:id/finalize', authenticate, requireAdmin, async (req, res) 
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Finalize error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Cancel menu (no balance deduction)
+router.post('/menus/:id/cancel', authenticate, requireAdmin, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { id } = req.params;
+
+    const menuCheck = await client.query(
+      'SELECT * FROM snack_menus WHERE id = $1 AND status IN ($2, $3)', [id, 'active', 'draft']
+    );
+    if (!menuCheck.rows.length) {
+      return res.status(400).json({ success: false, message: 'Menu not found or already closed' });
+    }
+
+    // Cancel all pending orders
+    await client.query(
+      `UPDATE snack_orders SET status = 'cancelled', cancelled_at = NOW()
+       WHERE menu_id = $1 AND status = 'pending'`, [id]
+    );
+
+    // Update menu status
+    await client.query(
+      `UPDATE snack_menus SET status = 'closed', closed_at = NOW() WHERE id = $1`, [id]
+    );
+
+    await client.query('COMMIT');
+    res.json({ success: true, message: 'Menu cancelled, no charges applied' });
+  } catch (error) {
+    await client.query('ROLLBACK');
     res.status(500).json({ success: false, message: error.message });
   } finally {
     client.release();

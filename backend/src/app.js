@@ -13,6 +13,8 @@ const transactionRoutes = require('./routes/transactions');
 const adminRoutes = require('./routes/admin');
 const adminSnackRoutes = require('./routes/adminSnacks');
 const userSnackRoutes = require('./routes/userSnacks');
+const reimbursementRoutes = require('./routes/reimbursements');
+const { startScheduler } = require('./services/scheduler');
 
 const app = express();
 
@@ -70,6 +72,10 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/snacks', adminSnackRoutes);
 app.use('/api/snacks', userSnackRoutes);
+app.use('/api/reimbursements', reimbursementRoutes);
+
+// Start cron scheduler
+startScheduler();
 
 // Welcome route
 app.get('/', (req, res) => {

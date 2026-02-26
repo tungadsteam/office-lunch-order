@@ -202,4 +202,162 @@ router.delete('/orders/:id', authenticate, async (req, res) => {
   }
 });
 
+// Any user can upload menu image for AI extraction
+router.post('/upload', authenticate, async (req, res) => {
+  try {
+    const { imageUrl } = req.body;
+    if (!imageUrl) {
+      return res.status(400).json({ success: false, message: 'imageUrl is required' });
+    }
+    const aiService = require('../services/aiService');
+    const extracted = await aiService.extractMenuFromImage(imageUrl);
+    res.json({ success: true, data: extracted });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Any user can create a snack menu
+router.post('/menus', authenticate, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { title, imageUrl, items } = req.body;
+    if (!items?.length) {
+      return res.status(400).json({ success: false, message: 'items required' });
+    }
+    const menuResult = await client.query(
+      `INSERT INTO snack_menus (title, image_url, created_by, status)
+       VALUES ($1, $2, $3, 'draft') RETURNING *`,
+      [title || 'Menu đồ ăn vặt', imageUrl || null, req.user.id]
+    );
+    const menu = menuResult.rows[0];
+    const insertedItems = [];
+    for (let i = 0; i < items.length; i++) {
+      const r = await client.query(
+        `INSERT INTO snack_items (menu_id, name, price, display_order)
+         VALUES ($1, $2, $3, $4) RETURNING *`,
+        [menu.id, items[i].name, items[i].price, i]
+      );
+      insertedItems.push(r.rows[0]);
+    }
+    await client.query('COMMIT');
+    res.json({ success: true, data: { ...menu, items: insertedItems } });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Any user can activate their own menu
+router.post('/menus/:id/activate', authenticate, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      `UPDATE snack_menus SET status = 'active', activated_at = NOW()
+       WHERE id = $1 AND (created_by = $2 OR $3 = 'admin') AND status = 'draft' RETURNING *`,
+      [id, req.user.id, req.user.role]
+    );
+    if (!result.rows.length) {
+      return res.status(400).json({ success: false, message: 'Menu not found or cannot activate' });
+    }
+    res.json({ success: true, data: result.rows[0], message: 'Menu activated' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Creator or admin can finalize their menu
+router.post('/menus/:id/finalize', authenticate, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { id } = req.params;
+
+    const menuCheck = await client.query(
+      `SELECT * FROM snack_menus WHERE id = $1 AND status = 'active'
+       AND (created_by = $2 OR $3 = 'admin')`,
+      [id, req.user.id, req.user.role]
+    );
+    if (!menuCheck.rows.length) {
+      return res.status(400).json({ success: false, message: 'Menu not active or not authorized' });
+    }
+
+    // Get pending orders grouped by user
+    const orders = await client.query(`
+      SELECT user_id, SUM(quantity * price) as total_cost
+      FROM snack_orders WHERE menu_id = $1 AND status = 'pending'
+      GROUP BY user_id
+    `, [id]);
+
+    let totalRevenue = 0;
+    for (const order of orders.rows) {
+      const userResult = await client.query(
+        'SELECT balance FROM users WHERE id = $1 FOR UPDATE', [order.user_id]
+      );
+      if (parseFloat(userResult.rows[0].balance) < parseFloat(order.total_cost)) {
+        throw new Error(`User ${order.user_id} insufficient balance`);
+      }
+      await client.query(
+        'UPDATE users SET balance = balance - $1 WHERE id = $2',
+        [order.total_cost, order.user_id]
+      );
+      await client.query(
+        `INSERT INTO transactions (user_id, amount, type, description)
+         VALUES ($1, $2, 'expense', $3)`,
+        [order.user_id, -Math.abs(order.total_cost), `Snack order - Menu #${id}`]
+      );
+      totalRevenue += parseFloat(order.total_cost);
+    }
+
+    await client.query(
+      `UPDATE snack_orders SET status = 'confirmed', confirmed_at = NOW()
+       WHERE menu_id = $1 AND status = 'pending'`, [id]
+    );
+
+    await client.query(
+      `UPDATE snack_menus SET status = 'closed', closed_at = NOW(),
+       total_orders = $1, total_revenue = $2, total_cost = $2,
+       finalized_by = $3, finalized_at = NOW() WHERE id = $4`,
+      [orders.rows.length, totalRevenue, req.user.id, id]
+    );
+
+    // Create reimbursement if creator is not admin
+    const creatorId = menuCheck.rows[0].created_by;
+    if (totalRevenue > 0 && creatorId) {
+      const creator = await client.query('SELECT role FROM users WHERE id = $1', [creatorId]);
+      if (creator.rows[0]?.role !== 'admin') {
+        await client.query(
+          `INSERT INTO reimbursements (user_id, amount, type, related_id, status)
+           VALUES ($1, $2, 'snack_creator', $3, 'pending')`,
+          [creatorId, totalRevenue, id]
+        );
+        // Notify admins
+        const admins = await client.query("SELECT id FROM users WHERE role = 'admin'");
+        for (const admin of admins.rows) {
+          await client.query(
+            `INSERT INTO notifications (user_id, type, title, message, related_type, related_id)
+             VALUES ($1, 'reimbursement_created', 'Hoàn tiền snack', $2, 'snack_menu', $3)`,
+            [admin.id, `Người tạo menu đã trả ${totalRevenue}đ. Cần chuyển hoàn.`, id]
+          );
+        }
+      }
+    }
+
+    await client.query('COMMIT');
+    res.json({
+      success: true,
+      message: 'Orders finalized',
+      data: { usersCharged: orders.rows.length, totalRevenue }
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    client.release();
+  }
+});
+
 module.exports = router;

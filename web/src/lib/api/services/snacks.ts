@@ -20,4 +20,5 @@ export const adminSnacksService = {
   activateMenu: (id: number) => client.post(`/admin/snacks/menus/${id}/activate`),
   getMenuOrders: (id: number) => client.get(`/admin/snacks/menus/${id}/orders`),
   finalizeMenu: (id: number) => client.post(`/admin/snacks/menus/${id}/finalize`),
+  cancelMenu: (id: number) => client.post(`/admin/snacks/menus/${id}/cancel`),
 };

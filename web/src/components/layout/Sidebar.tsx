@@ -11,12 +11,14 @@ const navItems = [
   { href: '/snacks', icon: '🍕', label: 'Đồ ăn vặt' },
   { href: '/history', icon: '📜', label: 'Lịch sử' },
   { href: '/balance', icon: '💰', label: 'Số dư & Nạp tiền' },
+  { href: '/reimbursements', icon: '🧾', label: 'Hoàn tiền' },
 ];
 
 const adminItems = [
   { href: '/admin', icon: '📊', label: 'Admin Dashboard' },
   { href: '/admin/deposits', icon: '✅', label: 'Duyệt nạp tiền' },
   { href: '/admin/snacks', icon: '🍕', label: 'Quản lý đồ ăn vặt' },
+  { href: '/admin/reimbursements', icon: '🧾', label: 'Quản lý hoàn tiền' },
   { href: '/admin/users', icon: '👥', label: 'Quản lý users' },
 ];
 

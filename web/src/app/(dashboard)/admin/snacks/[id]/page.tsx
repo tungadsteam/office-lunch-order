@@ -36,6 +36,18 @@ export default function SnackOrdersPage() {
     } catch { } finally { setLoading(false); }
   };
 
+  const handleCancel = async () => {
+    if (!confirm('Hủy menu này? Không trừ tiền ai.')) return;
+    setFinalizing(true);
+    try {
+      await adminSnacksService.cancelMenu(menuId);
+      toast.success('Đã hủy menu');
+      router.push('/admin/snacks');
+    } catch (err: any) {
+      toast.error(err.message || 'Lỗi');
+    } finally { setFinalizing(false); }
+  };
+
   const handleFinalize = async () => {
     if (!confirm('Chốt đơn? Sẽ trừ tiền tất cả users đã đặt.')) return;
     setFinalizing(true);
@@ -63,9 +75,14 @@ export default function SnackOrdersPage() {
           </p>
         </div>
         {menu?.status === 'active' && (
-          <Button onClick={handleFinalize} disabled={finalizing || !orders.length} variant="destructive">
-            {finalizing ? 'Đang chốt...' : '🔒 Chốt đơn & Trừ tiền'}
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={handleCancel} disabled={finalizing} variant="outline">
+              ❌ Hủy menu
+            </Button>
+            <Button onClick={handleFinalize} disabled={finalizing || !orders.length} variant="destructive">
+              {finalizing ? 'Đang chốt...' : '🔒 Chốt đơn & Trừ tiền'}
+            </Button>
+          </div>
         )}
       </div>
 
