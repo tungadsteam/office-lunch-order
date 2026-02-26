@@ -14,6 +14,10 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# 👇 THÊM 2 DÒNG NÀY
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
@@ -27,7 +31,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# If you rely on runtime env vars like NEXT_PUBLIC_*, set them via docker-compose.
+# (optional) runtime env for visibility/debug; NEXT_PUBLIC_* đã được bake lúc build
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Copy the standalone server and static assets
 COPY --from=builder /app/.next/standalone ./
