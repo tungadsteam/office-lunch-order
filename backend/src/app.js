@@ -11,6 +11,9 @@ const authRoutes = require('./routes/auth');
 const orderRoutes = require('./routes/orders');
 const transactionRoutes = require('./routes/transactions');
 const adminRoutes = require('./routes/admin');
+const snackRoutes = require('./routes/snacks');
+const webSnackRoutes = require('./routes/webSnacks');
+const reimbursementRoutes = require('./routes/reimbursements');
 
 const app = express();
 
@@ -31,14 +34,15 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Rate limiting
-const limiter = rateLimit({
+// Strict limiter for auth endpoints only (brute-force protection)
+const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  max: 30,
+  message: 'Too many login attempts, please try again later.'
 });
 
-app.use('/api/', limiter);
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
 
 // Request logging (development only)
 if (process.env.NODE_ENV === 'development') {
@@ -66,6 +70,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/snacks', webSnackRoutes); // web: /menus/*, /orders/*, /upload
+app.use('/api/snacks', snackRoutes);    // mobile: /, /:id, /:id/items, /:id/settle
+app.use('/api/reimbursements', reimbursementRoutes);
 
 // Welcome route
 app.get('/', (req, res) => {
@@ -77,7 +84,9 @@ app.get('/', (req, res) => {
       auth: '/api/auth',
       orders: '/api/orders',
       transactions: '/api/transactions',
-      admin: '/api/admin'
+      admin: '/api/admin',
+      snacks: '/api/snacks',
+      reimbursements: '/api/reimbursements'
     }
   });
 });

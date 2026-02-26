@@ -12,8 +12,15 @@ export type MainStackParamList = {
   Deposit: undefined;
   OrderDetail: { sessionId: number };
   TransactionHistory: undefined;
+  // Snacks
+  SnackMenuList: undefined;
+  SnackMenuDetail: { menuId: number };
+  CreateSnackMenu: undefined;
+  // Reimbursements
+  MyReimbursements: undefined;
   // Admin
   AdminDashboard: undefined;
   PendingDeposits: undefined;
   UsersList: undefined;
+  PendingReimbursements: undefined;
 };

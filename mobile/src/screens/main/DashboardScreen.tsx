@@ -22,7 +22,9 @@ export default function DashboardScreen({ navigation }: any) {
 
   const quickActions = [
     { icon: '🍱', label: 'Đặt cơm', onPress: () => navigation.navigate('OrderToday') },
+    { icon: '🍡', label: 'Ăn vặt', onPress: () => navigation.navigate('SnackMenuList') },
     { icon: '💰', label: 'Nạp tiền', onPress: () => navigation.navigate('Deposit') },
+    { icon: '💸', label: 'Hoàn tiền', onPress: () => navigation.navigate('MyReimbursements') },
     { icon: '📋', label: 'Lịch sử', onPress: () => navigation.navigate('History') },
     { icon: '👤', label: 'Tài khoản', onPress: () => navigation.navigate('Profile') },
   ];
