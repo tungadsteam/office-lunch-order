@@ -14,6 +14,11 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# NEXT_PUBLIC_* vars are inlined at build time by Next.js.
+# Provide a default suitable for local docker-compose (browser can reach localhost:3000).
+ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:3000
+ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
@@ -27,12 +32,19 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# If you rely on runtime env vars like NEXT_PUBLIC_*, set them via docker-compose.
+# Optional: keep the same value available at runtime for any server-side reads.
+ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:3000
+ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+
+# Security: run as non-root
+RUN addgroup -S nextjs && adduser -S nextjs -G nextjs
 
 # Copy the standalone server and static assets
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
+
+USER nextjs
 
 EXPOSE 3000
 

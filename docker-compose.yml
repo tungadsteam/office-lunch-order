@@ -50,16 +50,19 @@ services:
   web:
     build:
       context: ./web
+      args:
+        # NEXT_PUBLIC_* vars are inlined at build time by Next.js.
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3000}
     container_name: lunch-fund-web
     restart: unless-stopped
     ports:
       - "3001:3000"
     environment:
       NODE_ENV: production
-      # Used by the frontend to call the API. In the browser it must be reachable from the client.
-      # For same-host deployments, you can set this to your public domain (e.g. https://api.example.com).
-      # For local docker-compose dev, the container DNS name works for server-side requests.
-      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://backend:3000}
+      # Used by the frontend in the browser; must be reachable from the user's device.
+      # - Local compose: backend is published on localhost:3000
+      # - Production: set to your public API domain (e.g. https://api.example.com)
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3000}
     depends_on:
       - backend
 

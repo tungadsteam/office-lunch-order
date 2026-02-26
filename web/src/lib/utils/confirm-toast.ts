@@ -24,6 +24,9 @@ export function confirmToast(title: string, options: ConfirmToastOptions): void 
     },
     cancel: {
       label: cancelLabel,
+      onClick: () => {
+        /* no-op: Sonner will close the toast when cancel is clicked */
+      },
     },
   });
 }
