@@ -33,7 +33,7 @@ ENV NODE_ENV=production
 ENV PORT=3000
 
 # Optional: keep the same value available at runtime for any server-side reads.
-ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:3000
+ARG NEXT_PUBLIC_API_BASE_URL=http://134.209.107.164:3000
 ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
 
 # Security: run as non-root
