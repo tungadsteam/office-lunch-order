@@ -52,7 +52,7 @@ services:
       context: ./web
       args:
         # NEXT_PUBLIC_* vars are inlined at build time by Next.js.
-        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-https://api.quickmagic.cloud}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.quickmagic.cloud}
     container_name: lunch-fund-web
     restart: unless-stopped
     ports:
@@ -62,7 +62,7 @@ services:
       # Used by the frontend in the browser; must be reachable from the user's device.
       # - Local compose: backend is published on localhost:3000
       # - Production: set to your public API domain (e.g. https://api.example.com)
-      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-https://api.quickmagic.cloud}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.quickmagic.cloud}
     depends_on:
       - backend
 
