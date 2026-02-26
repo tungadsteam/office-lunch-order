@@ -17,6 +17,8 @@ interface OrderState {
   buyers: Participant[];
   isJoined: boolean;
   isLoading: boolean;
+  isForTomorrow: boolean;
+  targetDate: string | null;
   fetchToday: () => Promise<void>;
   joinOrder: () => Promise<void>;
   leaveOrder: () => Promise<void>;
@@ -28,6 +30,8 @@ export const useOrderStore = create<OrderState>((set, get) => ({
   buyers: [],
   isJoined: false,
   isLoading: false,
+  isForTomorrow: false,
+  targetDate: null,
 
   fetchToday: async () => {
     try {
@@ -54,6 +58,8 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         participants,
         buyers: buyersList,
         isJoined: data.is_joined || false,
+        isForTomorrow: data.isForTomorrow || false,
+        targetDate: data.targetDate || null,
       });
     } catch {
       set({ todaySession: null, participants: [], buyers: [], isJoined: false });

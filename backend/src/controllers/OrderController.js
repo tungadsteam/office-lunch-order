@@ -10,9 +10,11 @@ class OrderController {
    */
   async getToday(req, res) {
     try {
-      const today = moment().format('YYYY-MM-DD');
+      const targetDate = this._getTargetDate();
+      const today = targetDate.format('YYYY-MM-DD');
+      const isForTomorrow = moment().utcOffset(7).hour() >= 12;
       
-      // Get or create today's session
+      // Get or create session for target date
       let session = await this._getOrCreateSession(today);
       
       // Get today's orders with user info
@@ -48,7 +50,9 @@ class OrderController {
             amount_per_person: session.amount_per_person ? parseFloat(session.amount_per_person) : null
           },
           orders: ordersResult.rows,
-          is_joined: ordersResult.rows.some(o => o.user_id === req.user?.id)
+          is_joined: ordersResult.rows.some(o => o.user_id === req.user?.id),
+          isForTomorrow,
+          targetDate: today
         }
       });
       
@@ -67,8 +71,9 @@ class OrderController {
    */
   async joinToday(req, res) {
     try {
-      const today = moment().format('YYYY-MM-DD');
+      const targetDate = this._getTargetDate();
       const userId = req.user.id;
+      const today = targetDate.format('YYYY-MM-DD');
       
       // Get or create session
       const session = await this._getOrCreateSession(today);
@@ -93,10 +98,15 @@ class OrderController {
         RETURNING *
       `, [session.id, userId]);
       
+      const isForTomorrow = moment().utcOffset(7).hour() >= 12;
       res.status(201).json({
         success: true,
         data: result.rows[0],
-        message: 'Successfully joined lunch order'
+        message: isForTomorrow
+          ? `Đã đặt cơm cho ngày mai (${targetDate.format('DD/MM')})`
+          : 'Successfully joined lunch order',
+        targetDate: today,
+        isForTomorrow
       });
       
     } catch (error) {
@@ -114,7 +124,7 @@ class OrderController {
    */
   async leaveToday(req, res) {
     try {
-      const today = moment().format('YYYY-MM-DD');
+      const today = this._getTargetDate().format('YYYY-MM-DD');
       const userId = req.user.id;
       
       const sessionResult = await pool.query(
@@ -391,6 +401,17 @@ class OrderController {
    * Helper: Get or create today's session
    * @private
    */
+  /**
+   * Helper: Get target date (today before noon, tomorrow after noon)
+   */
+  _getTargetDate() {
+    const now = moment().utcOffset(7); // Asia/Ho_Chi_Minh (UTC+7)
+    if (now.hour() >= 12) {
+      return now.add(1, 'day');
+    }
+    return now;
+  }
+
   async _getOrCreateSession(date) {
     let result = await pool.query(
       'SELECT * FROM lunch_sessions WHERE session_date = $1',

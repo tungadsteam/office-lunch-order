@@ -17,7 +17,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function OrderPage() {
-  const { todaySession, participants, buyers, isJoined, isLoading, joinOrder, leaveOrder } = useOrder();
+  const { todaySession, participants, buyers, isJoined, isLoading, isForTomorrow, targetDate, joinOrder, leaveOrder } = useOrder();
   const { user } = useAuthStore();
 
   const canOrder = todaySession?.status === 'ordering' || todaySession?.status === 'open';
@@ -42,7 +42,14 @@ export default function OrderPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h2 className="text-2xl font-bold">🍱 Đặt cơm hôm nay</h2>
+      <h2 className="text-2xl font-bold">
+        🍱 {isForTomorrow ? `Đặt cơm ngày mai (${targetDate ? new Date(targetDate).toLocaleDateString('vi-VN') : ''})` : 'Đặt cơm hôm nay'}
+      </h2>
+      {isForTomorrow && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-700">
+          ⏰ Đã quá 12h trưa — bạn đang đặt cơm cho <strong>ngày mai</strong>
+        </div>
+      )}
 
       {!todaySession ? (
         <Card className="p-8 text-center">
@@ -133,7 +140,7 @@ export default function OrderPage() {
                   onClick={handleJoin}
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Đang xử lý...' : '✅ Đặt cơm hôm nay'}
+                  {isLoading ? 'Đang xử lý...' : isForTomorrow ? '✅ Đặt cơm ngày mai' : '✅ Đặt cơm hôm nay'}
                 </Button>
               )}
             </div>
