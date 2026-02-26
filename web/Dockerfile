@@ -16,7 +16,7 @@ ENV NODE_ENV=production
 
 # NEXT_PUBLIC_* vars are inlined at build time by Next.js.
 # Provide a default suitable for local docker-compose (browser can reach localhost:3000).
-ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:3000
+ARG NEXT_PUBLIC_API_BASE_URL=http://134.209.107.164:3000
 ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
 
 COPY --from=deps /app/node_modules ./node_modules
