@@ -7,7 +7,9 @@ WORKDIR /app
 # Install dependencies based on the lockfile
 COPY package.json package-lock.json ./
 RUN npm ci
+RUN npm install
 
+RUN npm install pm2 -g
 # --- builder ---
 FROM node:20-alpine AS builder
 WORKDIR /app
