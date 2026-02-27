@@ -1,5 +1,6 @@
 -- Migration v2: Snack Menu + Reimbursement Flow
--- Run this AFTER init.sql (additive, does not drop existing tables)
+-- NOTE: These tables are now included in init.sql (idempotent).
+-- This file is kept for reference. Safe to run on existing DBs.
 
 -- ==========================================
 -- 1. SNACK MENUS TABLE
@@ -86,7 +87,7 @@ CREATE TABLE IF NOT EXISTS snack_user_orders (
 CREATE INDEX IF NOT EXISTS idx_snack_user_orders_menu ON snack_user_orders(snack_menu_id);
 CREATE INDEX IF NOT EXISTS idx_snack_user_orders_user ON snack_user_orders(user_id);
 
-CREATE TRIGGER update_snack_user_orders_updated_at
+CREATE OR REPLACE TRIGGER update_snack_user_orders_updated_at
   BEFORE UPDATE ON snack_user_orders
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
@@ -133,12 +134,12 @@ CREATE INDEX IF NOT EXISTS idx_reimbursements_type_ref ON reimbursement_requests
 -- ==========================================
 -- TRIGGERS for new tables
 -- ==========================================
-CREATE TRIGGER update_snack_menus_updated_at
+CREATE OR REPLACE TRIGGER update_snack_menus_updated_at
   BEFORE UPDATE ON snack_menus
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_reimbursements_updated_at
+CREATE OR REPLACE TRIGGER update_reimbursements_updated_at
   BEFORE UPDATE ON reimbursement_requests
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
