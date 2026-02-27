@@ -24,7 +24,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function OrderPage() {
-  const { todaySession, participants, buyers, isJoined, isLoading, isForTomorrow, targetDate, joinOrder, leaveOrder, claimPayment } = useOrder();
+  const { todaySession, participants, buyers, isJoined, isLoading, isForTomorrow, targetDate, orderDeadline, joinOrder, leaveOrder, claimPayment } = useOrder();
   const { user, fetchUser } = useAuthStore();
 
   const [paymentAmount, setPaymentAmount] = useState('');
@@ -33,7 +33,8 @@ export default function OrderPage() {
   const [showClaimForm, setShowClaimForm] = useState(false);
 
   const canOrder = todaySession?.status === 'ordering' || todaySession?.status === 'open';
-  const hasEnoughBalance = (user?.balance || 0) > 0;
+  const MIN_ORDER_BALANCE = 60000;
+  const hasEnoughBalance = (user?.balance || 0) >= MIN_ORDER_BALANCE;
 
   const isABuyer = buyers.some(b => b.user_id === user?.id);
   const iAmPayer = todaySession?.payer_id === user?.id;
@@ -128,7 +129,7 @@ export default function OrderPage() {
               </Badge>
             </div>
             {canOrder && (
-              <p className="text-sm text-amber-600">⏰ Chốt sổ lúc 11:30</p>
+              <p className="text-sm text-amber-600">⏰ Chốt sổ lúc {orderDeadline}</p>
             )}
           </Card>
 
@@ -318,7 +319,7 @@ export default function OrderPage() {
                     💳 Số dư không đủ để đặt cơm
                   </p>
                   <p className="text-red-500 text-xs">
-                    Số dư hiện tại: <strong>{formatCurrency(user?.balance || 0)}</strong>
+                    Cần tối thiểu <strong>{formatCurrency(MIN_ORDER_BALANCE)}</strong> — hiện tại: <strong>{formatCurrency(user?.balance || 0)}</strong>
                   </p>
                   <Link href="/balance">
                     <Button size="sm" variant="outline" className="border-red-300 text-red-600 hover:bg-red-50">

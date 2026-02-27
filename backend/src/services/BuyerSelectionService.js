@@ -17,11 +17,13 @@ class BuyerSelectionService {
    * @returns {Promise<Array>} Selected buyers
    */
   async selectFourBuyers(sessionId) {
+    // Read buyer count from admin_settings (default: 4)
+    const buyerCount = await this.getBuyerCount();
     const client = await pool.connect();
-    
+
     try {
       await client.query('BEGIN');
-      
+
       // 1. Get session info
       const sessionResult = await client.query(
         'SELECT * FROM lunch_sessions WHERE id = $1',
@@ -79,9 +81,9 @@ class BuyerSelectionService {
       let candidates = participants.filter(p => !yesterdayBuyerIds.includes(p.user_id));
       
       // 5. Edge case: Not enough candidates after filtering
-      if (candidates.length < 4) {
+      if (candidates.length < buyerCount) {
         console.log(`⚠️  Only ${candidates.length} new candidates. Adding yesterday's buyers...`);
-        
+
         // Add back yesterday's buyers (sorted by rotation_index)
         const extras = participants
           .filter(p => yesterdayBuyerIds.includes(p.user_id))
@@ -93,13 +95,13 @@ class BuyerSelectionService {
             if (!b.last_bought_date) return 1;
             return new Date(a.last_bought_date) - new Date(b.last_bought_date);
           })
-          .slice(0, 4 - candidates.length);
-        
+          .slice(0, buyerCount - candidates.length);
+
         candidates = [...candidates, ...extras];
       }
-      
-      // Edge case: Less than 4 people total
-      const selectedCount = Math.min(4, candidates.length);
+
+      // Edge case: fewer people than buyerCount
+      const selectedCount = Math.min(buyerCount, candidates.length);
       const selectedBuyers = candidates.slice(0, selectedCount);
       
       if (selectedBuyers.length === 0) {

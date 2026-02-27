@@ -19,6 +19,7 @@ interface OrderState {
   isLoading: boolean;
   isForTomorrow: boolean;
   targetDate: string | null;
+  orderDeadline: string;
   fetchToday: () => Promise<void>;
   joinOrder: () => Promise<void>;
   leaveOrder: () => Promise<void>;
@@ -33,6 +34,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
   isLoading: false,
   isForTomorrow: false,
   targetDate: null,
+  orderDeadline: '11:30',
 
   fetchToday: async () => {
     try {
@@ -61,6 +63,7 @@ export const useOrderStore = create<OrderState>((set, get) => ({
         isJoined: data.is_joined || false,
         isForTomorrow: data.isForTomorrow || false,
         targetDate: data.targetDate || null,
+        orderDeadline: data.orderDeadline || '11:30',
       });
     } catch {
       set({ todaySession: null, participants: [], buyers: [], isJoined: false });

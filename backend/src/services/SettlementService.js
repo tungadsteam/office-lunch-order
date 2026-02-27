@@ -72,14 +72,7 @@ class SettlementService {
 
       console.log(`💰 Settlement v2: ${totalBill} VND / ${numPeople} people = ${amountPerPerson} VND each`);
 
-      // 4. Check all participants have enough balance
-      const insufficientBalanceUsers = participants.filter(p => p.balance < amountPerPerson);
-      if (insufficientBalanceUsers.length > 0) {
-        const names = insufficientBalanceUsers.map(u => u.name).join(', ');
-        throw new Error(`Insufficient balance for users: ${names}`);
-      }
-
-      // 5. Deduct amountPerPerson from ALL participants (including payer)
+      // 4. Deduct amountPerPerson from ALL participants (including payer)
       // NOTE: Payer does NOT get auto-credited anymore.
       // Admin will manually transfer totalBill to payer via bank.
       for (const participant of participants) {

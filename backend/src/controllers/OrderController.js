@@ -47,9 +47,16 @@ class OrderController {
         payerName = payerResult.rows[0]?.name || null;
       }
 
+      // Get order deadline from admin_settings
+      const deadlineResult = await pool.query(
+        "SELECT value FROM admin_settings WHERE key = 'order_deadline_time'"
+      );
+      const orderDeadline = deadlineResult.rows[0]?.value || '11:30';
+
       res.json({
         success: true,
         data: {
+          orderDeadline,
           session: {
             id: session.id,
             date: session.session_date,
@@ -89,6 +96,19 @@ class OrderController {
 
       // Get or create session
       const session = await this._getOrCreateSession(target.date);
+
+      // Check minimum balance from admin_settings (default: 60,000 VND)
+      const [thresholdResult, userResult] = await Promise.all([
+        pool.query("SELECT value FROM admin_settings WHERE key = 'low_balance_threshold'"),
+        pool.query('SELECT balance FROM users WHERE id = $1', [userId]),
+      ]);
+      const MIN_ORDER_BALANCE = parseInt(thresholdResult.rows[0]?.value || '60000');
+      if (userResult.rows.length === 0 || parseFloat(userResult.rows[0].balance) < MIN_ORDER_BALANCE) {
+        return res.status(400).json({
+          success: false,
+          message: `Số dư không đủ. Cần tối thiểu ${MIN_ORDER_BALANCE.toLocaleString('vi-VN')}đ để đặt cơm`
+        });
+      }
 
       // Check if already joined
       const existing = await pool.query(

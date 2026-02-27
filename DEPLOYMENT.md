@@ -92,7 +92,11 @@ docker-compose up -d
 
 ### Stop Services
 ```bash
+# ✅ Safe — giữ nguyên data
 docker-compose down
+
+# ❌ NGUY HIỂM — xóa toàn bộ database
+# docker-compose down -v   ← KHÔNG BAO GIỜ dùng trên production
 ```
 
 ### View Logs
@@ -109,9 +113,14 @@ docker-compose logs -f postgres
 
 ### Rebuild After Code Changes
 ```bash
+# ✅ Safe — chỉ xóa containers, KHÔNG xóa volume/data
 docker-compose down
 docker-compose up -d --build
 ```
+
+> ⚠️ **CẢNH BÁO: KHÔNG DÙNG `docker-compose down -v`**
+> Flag `-v` xóa luôn volume `postgres_data` → toàn bộ database bị xóa vĩnh viễn.
+> Chỉ dùng khi cố ý reset hoàn toàn môi trường dev.
 
 ### Database Backup
 ```bash

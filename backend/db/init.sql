@@ -1,157 +1,151 @@
 -- Lunch Fund Management System - Database Schema
 -- PostgreSQL 15+
-
--- Drop tables if exists (for clean re-init)
-DROP TABLE IF EXISTS notification_logs CASCADE;
-DROP TABLE IF EXISTS lunch_orders CASCADE;
-DROP TABLE IF EXISTS transactions CASCADE;
-DROP TABLE IF EXISTS lunch_sessions CASCADE;
-DROP TABLE IF EXISTS admin_settings CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
+-- IDEMPOTENT: Safe to run multiple times — uses IF NOT EXISTS and ON CONFLICT DO NOTHING
 
 -- ==========================================
 -- 1. USERS TABLE
 -- ==========================================
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   name VARCHAR(100) NOT NULL,
   phone VARCHAR(20),
   role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('admin', 'user')),
-  
+
   -- Financial
-  balance DECIMAL(12, 2) DEFAULT 0.00 CHECK (balance >= 0),
-  
+  balance DECIMAL(12, 2) DEFAULT 0.00,
+
   -- Rotation tracking
   last_bought_date DATE,
   rotation_index INTEGER DEFAULT 0,
   total_bought_times INTEGER DEFAULT 0,
-  
+
   -- Notifications
   fcm_token TEXT,
   notification_enabled BOOLEAN DEFAULT true,
-  
+
   -- Status
   is_active BOOLEAN DEFAULT true,
-  
+
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_role ON users(role);
-CREATE INDEX idx_users_rotation ON users(rotation_index, last_bought_date);
-CREATE INDEX idx_users_active ON users(is_active) WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_users_rotation ON users(rotation_index, last_bought_date);
+CREATE INDEX IF NOT EXISTS idx_users_active ON users(is_active) WHERE is_active = true;
 
 -- ==========================================
 -- 2. LUNCH SESSIONS TABLE
 -- ==========================================
-CREATE TABLE lunch_sessions (
+CREATE TABLE IF NOT EXISTS lunch_sessions (
   id SERIAL PRIMARY KEY,
   session_date DATE NOT NULL UNIQUE,
-  
+
   -- Workflow status
   status VARCHAR(30) DEFAULT 'ordering' CHECK (
     status IN ('ordering', 'buyers_selected', 'buying', 'payment_submitted', 'settled', 'cancelled')
   ),
-  
+
   -- Buyers (4 người đi mua)
   buyer_ids INTEGER[] DEFAULT '{}',
   selected_at TIMESTAMP,
-  
+
   -- Payment
   payer_id INTEGER REFERENCES users(id),
   total_bill DECIMAL(12, 2),
   amount_per_person DECIMAL(12, 2),
   bill_image_url TEXT,
   paid_at TIMESTAMP,
-  
+
   -- Metadata
   total_participants INTEGER DEFAULT 0,
   notes TEXT,
-  
+
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_sessions_date ON lunch_sessions(session_date DESC);
-CREATE INDEX idx_sessions_status ON lunch_sessions(status);
-CREATE INDEX idx_sessions_buyers ON lunch_sessions USING GIN(buyer_ids);
+CREATE INDEX IF NOT EXISTS idx_sessions_date ON lunch_sessions(session_date DESC);
+CREATE INDEX IF NOT EXISTS idx_sessions_status ON lunch_sessions(status);
+CREATE INDEX IF NOT EXISTS idx_sessions_buyers ON lunch_sessions USING GIN(buyer_ids);
 
 -- ==========================================
 -- 3. TRANSACTIONS TABLE
 -- ==========================================
-CREATE TABLE transactions (
+CREATE TABLE IF NOT EXISTS transactions (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  
+
   -- Transaction type
   type VARCHAR(20) NOT NULL CHECK (type IN ('deposit', 'income', 'expense', 'refund', 'adjustment')),
   amount DECIMAL(12, 2) NOT NULL,
-  
+
   -- Deposit workflow
   status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'completed')),
   admin_id INTEGER REFERENCES users(id),
   approved_at TIMESTAMP,
-  
+
   -- Linking
   order_id INTEGER REFERENCES lunch_sessions(id),
-  
+
   -- Details
   note TEXT,
   metadata JSONB,
-  
+
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_transactions_user ON transactions(user_id, created_at DESC);
-CREATE INDEX idx_transactions_type ON transactions(type);
-CREATE INDEX idx_transactions_status ON transactions(status) WHERE status = 'pending';
-CREATE INDEX idx_transactions_order ON transactions(order_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_user ON transactions(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
+CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions(status) WHERE status = 'pending';
+CREATE INDEX IF NOT EXISTS idx_transactions_order ON transactions(order_id);
 
 -- ==========================================
 -- 4. LUNCH ORDERS TABLE
 -- ==========================================
-CREATE TABLE lunch_orders (
+CREATE TABLE IF NOT EXISTS lunch_orders (
   id SERIAL PRIMARY KEY,
   session_id INTEGER NOT NULL REFERENCES lunch_sessions(id) ON DELETE CASCADE,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  
+
   status VARCHAR(20) DEFAULT 'confirmed' CHECK (status IN ('confirmed', 'cancelled')),
-  
+
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   cancelled_at TIMESTAMP,
-  
+
   UNIQUE(session_id, user_id)
 );
 
-CREATE INDEX idx_orders_session ON lunch_orders(session_id, status);
-CREATE INDEX idx_orders_user ON lunch_orders(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_orders_session ON lunch_orders(session_id, status);
+CREATE INDEX IF NOT EXISTS idx_orders_user ON lunch_orders(user_id, created_at DESC);
 
 -- ==========================================
 -- 5. ADMIN SETTINGS TABLE
 -- ==========================================
-CREATE TABLE admin_settings (
+CREATE TABLE IF NOT EXISTS admin_settings (
   key VARCHAR(100) PRIMARY KEY,
   value TEXT NOT NULL,
   description TEXT,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Initial settings
+-- Initial settings — ON CONFLICT DO NOTHING preserves existing admin-edited values
 INSERT INTO admin_settings (key, value, description) VALUES
   ('bank_account_number', '1234567890', 'Số tài khoản ngân hàng admin'),
   ('bank_account_name', 'NGUYEN VAN A', 'Tên chủ tài khoản'),
   ('bank_name', 'Vietcombank', 'Tên ngân hàng'),
   ('buyer_count', '4', 'Số người đi mua mỗi ngày'),
   ('order_deadline_time', '11:30', 'Giờ chốt sổ đặt cơm'),
-  ('low_balance_threshold', '30000', 'Ngưỡng cảnh báo số dư thấp');
+  ('low_balance_threshold', '30000', 'Ngưỡng cảnh báo số dư thấp')
+ON CONFLICT (key) DO NOTHING;
 
 -- ==========================================
--- 6. NOTIFICATION LOGS TABLE (Optional)
+-- 6. NOTIFICATION LOGS TABLE
 -- ==========================================
-CREATE TABLE notification_logs (
+CREATE TABLE IF NOT EXISTS notification_logs (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id),
   type VARCHAR(50) NOT NULL,
@@ -163,13 +157,12 @@ CREATE TABLE notification_logs (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_notif_user ON notification_logs(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notif_user ON notification_logs(user_id, created_at DESC);
 
 -- ==========================================
 -- TRIGGERS
 -- ==========================================
 
--- Auto-update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -178,36 +171,31 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER update_users_updated_at
+-- PostgreSQL 14+ supports CREATE OR REPLACE TRIGGER
+CREATE OR REPLACE TRIGGER update_users_updated_at
   BEFORE UPDATE ON users
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_sessions_updated_at
+CREATE OR REPLACE TRIGGER update_sessions_updated_at
   BEFORE UPDATE ON lunch_sessions
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
-CREATE TRIGGER update_settings_updated_at
+CREATE OR REPLACE TRIGGER update_settings_updated_at
   BEFORE UPDATE ON admin_settings
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
 -- ==========================================
--- SEED DATA (for testing)
+-- SEED DATA (for first-time setup only)
+-- ON CONFLICT DO NOTHING ensures existing production data is never overwritten
 -- ==========================================
 
--- Create admin user (password: Admin123!)
+-- Admin user (password: Admin123!)
 INSERT INTO users (email, password_hash, name, role, balance) VALUES
-  ('admin@lunchfund.com', '$2b$10$EGLpmzJhsjZ8Ac13V1Mf0OUZQjwE7el82gmED1D137aQn8AMVe1Wy', 'Admin User', 'admin', 0);
-
--- Create test users (password: User123!)
-INSERT INTO users (email, password_hash, name, balance) VALUES
-  ('user1@test.com', '$2b$10$QySebHGefNvjK1pHqdq5LeGLsr380/f1k6m2U0JoBdKVWcLk4Moxa', 'Nguyen Van A', 100000),
-  ('user2@test.com', '$2b$10$QySebHGefNvjK1pHqdq5LeGLsr380/f1k6m2U0JoBdKVWcLk4Moxa', 'Tran Thi B', 150000),
-  ('user3@test.com', '$2b$10$QySebHGefNvjK1pHqdq5LeGLsr380/f1k6m2U0JoBdKVWcLk4Moxa', 'Le Van C', 80000),
-  ('user4@test.com', '$2b$10$QySebHGefNvjK1pHqdq5LeGLsr380/f1k6m2U0JoBdKVWcLk4Moxa', 'Pham Thi D', 200000),
-  ('user5@test.com', '$2b$10$QySebHGefNvjK1pHqdq5LeGLsr380/f1k6m2U0JoBdKVWcLk4Moxa', 'Hoang Van E', 120000);
+  ('admin@lunchfund.com', '$2b$10$EGLpmzJhsjZ8Ac13V1Mf0OUZQjwE7el82gmED1D137aQn8AMVe1Wy', 'Admin User', 'admin', 0)
+ON CONFLICT (email) DO NOTHING;
 
 COMMENT ON TABLE users IS 'User accounts with balance and rotation tracking';
 COMMENT ON TABLE lunch_sessions IS 'Daily lunch sessions with buyer selection and settlement';
