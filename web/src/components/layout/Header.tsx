@@ -1,95 +1,50 @@
 'use client';
 
-import { useAuthStore } from '@/lib/store/authStore';
-import { formatCurrency } from '@/lib/utils/formatters';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { Menu, X } from 'lucide-react';
+import { subscribeToPushNotifications } from '@/lib/utils/push'; // Assuming push utils are in this path
 
-const navItems = [
-  { href: '/', icon: '🏠', label: 'Home' },
-  { href: '/order', icon: '🍱', label: 'Cơm' },
-  { href: '/snacks', icon: '🍕', label: 'Snack' },
-  { href: '/balance', icon: '💰', label: 'Nạp tiền' },
-];
+const Header = () => {
+  const [isOpen, setIsOpen] = useState(false);
 
-export default function Header() {
-  const { user, logout } = useAuthStore();
-  const pathname = usePathname();
+  useEffect(() => {
+    // Attempt to subscribe to push notifications when the main component mounts
+    // This will trigger the permission prompt if not already granted
+    subscribeToPushNotifications();
+  }, []);
+
 
   return (
-    <>
-      {/* Top header - mobile */}
-      <header className="md:hidden flex items-center justify-between p-4 bg-white border-b">
-        <Sheet>
-          <SheetTrigger asChild>
-            <button className="text-2xl">☰</button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-64 p-0">
-            <div className="p-6 border-b">
-              <h1 className="text-xl font-bold">🍱 Lunch Fund</h1>
-            </div>
-            <nav className="p-4 space-y-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium',
-                    pathname === item.href ? 'bg-blue-50 text-blue-700' : 'text-gray-600'
-                  )}
-                >
-                  <span>{item.icon}</span>
-                  <span>{item.label}</span>
-                </Link>
-              ))}
-              {user?.role === 'admin' && (
-                <>
-                  <div className="pt-3 pb-1">
-                    <p className="px-3 text-xs font-semibold text-gray-400 uppercase">Admin</p>
-                  </div>
-                  <Link href="/admin" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600">
-                    <span>📊</span><span>Admin</span>
-                  </Link>
-                  <Link href="/admin/deposits" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-600">
-                    <span>✅</span><span>Duyệt nạp tiền</span>
-                  </Link>
-                </>
-              )}
-            </nav>
-            <div className="absolute bottom-0 left-0 right-0 p-4 border-t">
-              <button
-                onClick={() => { localStorage.removeItem('auth_token'); logout(); window.location.href = '/login'; }}
-                className="text-sm text-red-500"
-              >
-                🚪 Đăng xuất
-              </button>
-            </div>
-          </SheetContent>
-        </Sheet>
-
-        <span className="text-sm font-medium">
-          💰 {formatCurrency(user?.balance || 0)}
-        </span>
-      </header>
-
-      {/* Bottom nav - mobile */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t flex z-50">
-        {navItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              'flex-1 flex flex-col items-center py-2 text-xs',
-              pathname === item.href ? 'text-blue-600' : 'text-gray-500'
-            )}
-          >
-            <span className="text-lg">{item.icon}</span>
-            <span>{item.label}</span>
-          </Link>
-        ))}
+    <header className="fixed top-0 left-0 w-full p-4 flex justify-between items-center z-50 bg-black bg-opacity-50 backdrop-blur-md">
+      <Link href="/" className="text-2xl font-bold">Kling</Link>
+      
+      <nav className="hidden md:flex">
+        <Link href="#home" className="mx-4 hover:text-blue-400 transition-colors">Home</Link>
+        <Link href="#showcase" className="mx-4 hover:text-blue-400 transition-colors">Showcase</Link>
+        <Link href="#faq" className="mx-4 hover:text-blue-400 transition-colors">FAQ</Link>
       </nav>
-    </>
+
+      <div className="hidden md:block">
+        <button className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700 transition-colors">Join Waitlist</button>
+      </div>
+
+      <div className="md:hidden">
+        <button onClick={() => setIsOpen(!isOpen)}>
+          {isOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {isOpen && (
+        <div className="md:hidden absolute top-full left-0 w-full bg-black bg-opacity-90 flex flex-col items-center py-4">
+          <Link href="#home" className="my-2" onClick={() => setIsOpen(false)}>Home</Link>
+          <Link href="#showcase" className="my-2" onClick={() => setIsOpen(false)}>Showcase</Link>
+          <Link href="#faq" className="my-2" onClick={() => setIsOpen(false)}>FAQ</Link>
+          <button className="mt-4 px-4 py-2 bg-blue-600 rounded">Join Waitlist</button>
+        </div>
+      )}
+    </header>
   );
-}
+};
+
+export default Header;
