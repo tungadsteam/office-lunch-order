@@ -1,7 +1,7 @@
 'use client';
 
 import { subscribeToPushNotifications } from '@/lib/utils/push';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/lib/hooks/useAuth';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
