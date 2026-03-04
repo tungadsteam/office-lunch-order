@@ -64,7 +64,17 @@ const sendFinalizedNotifications = async () => {
     }
 };
 
+const sendBroadcastNotification = async (payload) => {
+    console.log(`Broadcasting message: "${payload.title}"`);
+    const { rows: subscriptions } = await db.query('SELECT * FROM push_subscriptions');
+    
+    for (const sub of subscriptions) {
+        await sendNotification(sub.subscription_object, payload);
+    }
+};
+
 module.exports = {
   sendReminderNotifications,
   sendFinalizedNotifications,
+  sendBroadcastNotification, // Export the new function
 };
