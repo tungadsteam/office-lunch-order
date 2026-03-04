@@ -15,6 +15,9 @@ RUN npm install pm2 -g
 # Copy source code
 COPY . .
 
+# Ensure uploads directory exists
+RUN mkdir -p /app/uploads/snacks
+
 # Expose port
 EXPOSE 3000
 

@@ -175,6 +175,7 @@ CREATE TABLE IF NOT EXISTS snack_menus (
   settled_at TIMESTAMP,
   settled_by INTEGER REFERENCES users(id),
 
+  image_urls JSONB,
   notes TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -268,6 +269,21 @@ CREATE TABLE IF NOT EXISTS reimbursement_requests (
 CREATE INDEX IF NOT EXISTS idx_reimbursements_settler ON reimbursement_requests(settler_id);
 CREATE INDEX IF NOT EXISTS idx_reimbursements_status ON reimbursement_requests(status);
 CREATE INDEX IF NOT EXISTS idx_reimbursements_type_ref ON reimbursement_requests(type, reference_id);
+
+-- ==========================================
+-- 12. PUSH SUBSCRIPTIONS TABLE (Web Push / VAPID)
+-- ==========================================
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  subscription_object JSONB NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_id, subscription_object)
+);
+
+CREATE INDEX IF NOT EXISTS idx_push_subs_user ON push_subscriptions(user_id);
+
+COMMENT ON TABLE push_subscriptions IS 'Web Push notification subscriptions (VAPID)';
 
 -- ==========================================
 -- TRIGGERS

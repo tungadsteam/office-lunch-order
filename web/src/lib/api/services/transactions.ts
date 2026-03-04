@@ -15,4 +15,6 @@ export const transactionsService = {
   approve: (id: number) => client.put(`/transactions/${id}/approve`),
 
   reject: (id: number) => client.put(`/transactions/${id}/reject`),
+
+  getBankInfo: () => client.get('/transactions/bank-info'),
 };

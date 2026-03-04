@@ -3,6 +3,7 @@
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
+import PullToRefresh from '@/components/layout/PullToRefresh';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,9 +12,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <Header />
-          <main className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6">
+          <PullToRefresh className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6">
             {children}
-          </main>
+          </PullToRefresh>
         </div>
       </div>
     </ProtectedRoute>

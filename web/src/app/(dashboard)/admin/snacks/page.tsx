@@ -10,11 +10,14 @@ import { snacksService } from '@/lib/api/services/snacks';
 import { formatCurrency, formatDateTime } from '@/lib/utils/formatters';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { ImageGallery } from '@/components/snacks/ImageGallery';
 
 interface MenuItem {
   name: string;
   price: number;
 }
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || '';
 
 export default function AdminSnacksPage() {
   const [menus, setMenus] = useState<any[]>([]);
@@ -25,6 +28,8 @@ export default function AdminSnacksPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([{ name: '', price: 0 }]);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [savedImageUrls, setSavedImageUrls] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [creating, setCreating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,15 +58,40 @@ export default function AdminSnacksPage() {
     addImages(files);
   };
 
-  const addImages = (files: File[]) => {
+  const addImages = async (files: File[]) => {
+    // Show previews immediately
+    const newPreviews = files.map(f => URL.createObjectURL(f));
     setUploadedImages(prev => [...prev, ...files]);
-    setImagePreviews(prev => [...prev, ...files.map(f => URL.createObjectURL(f))]);
+    setImagePreviews(prev => [...prev, ...newPreviews]);
+
+    // Upload to server
+    setUploading(true);
+    const newUrls: string[] = [];
+    for (const file of files) {
+      try {
+        const res: any = await snacksService.uploadImage(file);
+        newUrls.push(res.data.url);
+      } catch (err: any) {
+        toast.error(`Upload thất bại: ${err.message}`);
+      }
+    }
+    setSavedImageUrls(prev => [...prev, ...newUrls]);
+    setUploading(false);
   };
 
-  const removeImage = (idx: number) => {
+  const removeImage = async (idx: number) => {
     URL.revokeObjectURL(imagePreviews[idx]);
+    // Delete from server if already uploaded
+    const url = savedImageUrls[idx];
+    if (url) {
+      const filename = url.split('/').pop();
+      if (filename) {
+        try { await snacksService.deleteImage(filename); } catch { }
+      }
+    }
     setUploadedImages(prev => prev.filter((_, i) => i !== idx));
     setImagePreviews(prev => prev.filter((_, i) => i !== idx));
+    setSavedImageUrls(prev => prev.filter((_, i) => i !== idx));
   };
 
   const handleExtractAll = async () => {
@@ -106,6 +136,7 @@ export default function AdminSnacksPage() {
     try {
       await snacksService.createMenu({
         title: title.trim() || 'Menu đồ ăn vặt',
+        imageUrls: savedImageUrls.length > 0 ? savedImageUrls : undefined,
         items: validItems,
       });
       toast.success('Tạo menu thành công!');
@@ -115,6 +146,7 @@ export default function AdminSnacksPage() {
       imagePreviews.forEach(url => URL.revokeObjectURL(url));
       setUploadedImages([]);
       setImagePreviews([]);
+      setSavedImageUrls([]);
       fetchMenus();
     } catch (err: any) {
       toast.error(err.message || 'Lỗi tạo menu');
@@ -161,7 +193,7 @@ export default function AdminSnacksPage() {
             >
               <p className="text-3xl mb-2">📷</p>
               <p className="text-sm text-gray-600">Kéo thả hoặc click để chọn ảnh</p>
-              <p className="text-xs text-gray-400 mt-1">Chọn được nhiều ảnh cùng lúc</p>
+              <p className="text-xs text-gray-400 mt-1">Ảnh sẽ được lưu lại để người dùng xem</p>
             </div>
             <input
               ref={fileInputRef}
@@ -200,10 +232,14 @@ export default function AdminSnacksPage() {
               </div>
             )}
 
+            {uploading && (
+              <p className="text-xs text-blue-500">Đang tải ảnh lên...</p>
+            )}
+
             {uploadedImages.length > 0 && (
               <Button
                 onClick={handleExtractAll}
-                disabled={extracting}
+                disabled={extracting || uploading}
                 variant="secondary"
                 className="w-full"
               >
@@ -246,7 +282,7 @@ export default function AdminSnacksPage() {
             >+ Thêm món</Button>
           </div>
 
-          <Button onClick={handleCreateMenu} disabled={creating} className="w-full">
+          <Button onClick={handleCreateMenu} disabled={creating || uploading} className="w-full">
             {creating ? 'Đang tạo...' : '✅ Tạo menu'}
           </Button>
         </Card>
@@ -264,7 +300,7 @@ export default function AdminSnacksPage() {
           {menus.map(menu => (
             <Card key={menu.id} className="p-4">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <p className="font-semibold">{menu.title}</p>
                     {statusBadge(menu.status)}
@@ -289,6 +325,10 @@ export default function AdminSnacksPage() {
                   )}
                 </div>
               </div>
+              {/* Menu images */}
+              {menu.image_urls && menu.image_urls.length > 0 && (
+                <ImageGallery images={menu.image_urls} baseUrl={API_BASE_URL} className="mt-3" />
+              )}
             </Card>
           ))}
         </div>

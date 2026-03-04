@@ -80,4 +80,17 @@ router.put('/users/:id/balance',
   asyncHandler(AdminController.adjustBalance.bind(AdminController))
 );
 
+/**
+ * POST /admin/broadcast
+ * Send push notification to all users
+ */
+router.post('/broadcast',
+  [
+    body('title').notEmpty().withMessage('Tiêu đề không được trống'),
+    body('body').notEmpty().withMessage('Nội dung không được trống')
+  ],
+  validate,
+  asyncHandler(AdminController.broadcastMessage.bind(AdminController))
+);
+
 module.exports = router;

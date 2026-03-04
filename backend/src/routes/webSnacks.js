@@ -70,6 +70,19 @@ router.put('/orders/:id',
 /** DELETE /snacks/orders/:id - Cancel order line */
 router.delete('/orders/:id', asyncHandler(WebSnackController.cancelOrder.bind(WebSnackController)));
 
+// ─── IMAGE UPLOAD / DELETE ───────────────────────────────────
+
+/** POST /snacks/images - Upload a single image to server storage */
+router.post('/images',
+  upload.single('image'),
+  asyncHandler(WebSnackController.uploadImage.bind(WebSnackController))
+);
+
+/** DELETE /snacks/images/:filename - Delete an uploaded image */
+router.delete('/images/:filename',
+  asyncHandler(WebSnackController.deleteImage.bind(WebSnackController))
+);
+
 // ─── AI EXTRACTION ───────────────────────────────────────────
 
 /** POST /snacks/upload - AI extract menu items from image (multipart file or JSON imageUrl) */

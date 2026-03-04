@@ -34,7 +34,7 @@ class TransactionService {
    */
   async getPendingDeposits() {
     const result = await pool.query(`
-      SELECT t.*, u.name, u.email, u.phone
+      SELECT t.*, u.name AS user_name, u.email, u.phone
       FROM transactions t
       JOIN users u ON t.user_id = u.id
       WHERE t.type = 'deposit' AND t.status = 'pending'

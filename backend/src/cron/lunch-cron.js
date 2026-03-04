@@ -25,13 +25,13 @@ const orderReminderJob = cron.schedule('0,30 2,3,4 * * 1-5', async () => {
     if (sessionResult.rows.length === 0) return;
     const sessionId = sessionResult.rows[0].id;
 
-    // Get users who haven't joined yet
+    // Get users who haven't joined yet and have push subscriptions
     const usersResult = await pool.query(`
-      SELECT u.id, u.name, u.fcm_token
+      SELECT DISTINCT u.id, u.name
       FROM users u
+      JOIN push_subscriptions ps ON ps.user_id = u.id
       WHERE u.is_active = true
         AND u.notification_enabled = true
-        AND u.fcm_token IS NOT NULL
         AND u.id NOT IN (
           SELECT user_id FROM lunch_orders
           WHERE session_id = $1 AND status = 'confirmed'
@@ -84,7 +84,7 @@ function initCronJobs() {
 
   console.log('✅ Cron jobs initialized');
   console.log('   - Order reminders : every 30min, 9:00–11:00 VN, weekdays');
-  console.log('   - Auto buyer select: 20:20 VN [TEST MODE]');
+  console.log('   - Auto buyer select: 11:30 VN, weekdays');
 }
 
 module.exports = { initCronJobs };

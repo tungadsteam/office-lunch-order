@@ -5,7 +5,22 @@ const { authenticate, requireAdmin } = require('../middleware/auth');
 const validate = require('../middleware/validate');
 const { asyncHandler } = require('../middleware/errorHandler');
 
+const pool = require('../config/database');
+
 const router = express.Router();
+
+/**
+ * GET /transactions/bank-info
+ * Get bank info for deposit (any authenticated user)
+ */
+router.get('/bank-info', authenticate, asyncHandler(async (req, res) => {
+  const result = await pool.query(
+    "SELECT key, value FROM admin_settings WHERE key IN ('bank_account_number', 'bank_account_name', 'bank_name')"
+  );
+  const data = {};
+  result.rows.forEach(r => { data[r.key] = r.value; });
+  res.json({ success: true, data });
+}));
 
 /**
  * POST /transactions/deposit

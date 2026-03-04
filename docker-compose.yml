@@ -36,6 +36,11 @@ services:
       JWT_EXPIRES_IN: 7d
       CRON_ENABLED: "true"
       CRON_TIMEZONE: Asia/Ho_Chi_Minh
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_EMAIL: ${VAPID_EMAIL:-admin@lunchfund.com}
+    volumes:
+      - snack_uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -53,6 +58,7 @@ services:
       args:
         # NEXT_PUBLIC_* vars are inlined at build time by Next.js.
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-https://api.quickmagic.cloud}
+        NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
     container_name: lunch-fund-web
     restart: unless-stopped
     ports:
@@ -78,6 +84,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  snack_uploads:
     driver: local
 
 networks:

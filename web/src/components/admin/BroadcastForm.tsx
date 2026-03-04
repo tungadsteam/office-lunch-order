@@ -1,72 +1,67 @@
 'use client';
 
 import { useState } from 'react';
-import api from '@/lib/api'; // Assuming you have an api helper
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { adminService } from '@/lib/api/services/admin';
 import { toast } from 'sonner';
 
-const BroadcastForm = () => {
+export default function BroadcastForm() {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !body) {
-      toast.error('Please fill in both title and message.');
+    if (!title.trim() || !body.trim()) {
+      toast.error('Vui lòng nhập tiêu đề và nội dung');
       return;
     }
     setLoading(true);
     try {
-      await api.post('/admin/broadcast', { title, body });
-      toast.success('Broadcast sent successfully!');
+      await adminService.broadcast(title.trim(), body.trim());
+      toast.success('Đã gửi thông báo cho tất cả người dùng!');
       setTitle('');
       setBody('');
-    } catch (error) {
-      console.error('Failed to send broadcast', error);
-      toast.error('Failed to send broadcast. See console for details.');
+    } catch (err: any) {
+      toast.error(err.message || 'Gửi thông báo thất bại');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md mt-8">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">Send Broadcast Notification</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label htmlFor="title" className="block text-gray-700 font-bold mb-2">Title</label>
-          <input
-            id="title"
-            type="text"
+    <Card className="p-6">
+      <h3 className="text-lg font-semibold mb-4">📢 Gửi thông báo</h3>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="broadcast-title">Tiêu đề</Label>
+          <Input
+            id="broadcast-title"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3 py-2 border rounded text-gray-700"
-            placeholder="E.g., Company Announcement"
+            onChange={e => setTitle(e.target.value)}
+            placeholder="VD: Thông báo quan trọng"
             required
           />
         </div>
-        <div className="mb-4">
-          <label htmlFor="body" className="block text-gray-700 font-bold mb-2">Message</label>
+        <div className="space-y-2">
+          <Label htmlFor="broadcast-body">Nội dung</Label>
           <textarea
-            id="body"
+            id="broadcast-body"
             value={body}
-            onChange={(e) => setBody(e.target.value)}
-            className="w-full px-3 py-2 border rounded text-gray-700"
-            placeholder="Enter your message here..."
-            rows={4}
+            onChange={e => setBody(e.target.value)}
+            placeholder="Nhập nội dung thông báo..."
+            rows={3}
             required
+            className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:bg-gray-400"
-        >
-          {loading ? 'Sending...' : 'Send to All Users'}
-        </button>
+        <Button type="submit" disabled={loading} className="w-full">
+          {loading ? 'Đang gửi...' : '📤 Gửi thông báo cho tất cả'}
+        </Button>
       </form>
-    </div>
+    </Card>
   );
-};
-
-export default BroadcastForm;
+}

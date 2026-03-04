@@ -12,6 +12,9 @@ import { formatCurrency, formatDateTime } from '@/lib/utils/formatters';
 import { confirmToast } from '@/lib/utils/confirm-toast';
 import { useAuthStore } from '@/lib/store/authStore';
 import { toast } from 'sonner';
+import { ImageGallery } from '@/components/snacks/ImageGallery';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || '';
 
 interface SnackItem {
   id: number;
@@ -64,6 +67,8 @@ export default function SnacksPage() {
   const [newMenuItems, setNewMenuItems] = useState<MenuItem[]>([{ name: '', price: 0 }]);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [savedImageUrls, setSavedImageUrls] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [creating, setCreating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -149,15 +154,37 @@ export default function SnacksPage() {
     addImages(files);
   };
 
-  const addImages = (files: File[]) => {
+  const addImages = async (files: File[]) => {
+    const newPreviews = files.map(f => URL.createObjectURL(f));
     setUploadedImages(prev => [...prev, ...files]);
-    setImagePreviews(prev => [...prev, ...files.map(f => URL.createObjectURL(f))]);
+    setImagePreviews(prev => [...prev, ...newPreviews]);
+
+    setUploading(true);
+    const newUrls: string[] = [];
+    for (const file of files) {
+      try {
+        const res: any = await snacksService.uploadImage(file);
+        newUrls.push(res.data.url);
+      } catch (err: any) {
+        toast.error(`Upload thất bại: ${err.message}`);
+      }
+    }
+    setSavedImageUrls(prev => [...prev, ...newUrls]);
+    setUploading(false);
   };
 
-  const removeImage = (idx: number) => {
+  const removeImage = async (idx: number) => {
     URL.revokeObjectURL(imagePreviews[idx]);
+    const url = savedImageUrls[idx];
+    if (url) {
+      const filename = url.split('/').pop();
+      if (filename) {
+        try { await snacksService.deleteImage(filename); } catch { }
+      }
+    }
     setUploadedImages(prev => prev.filter((_, i) => i !== idx));
     setImagePreviews(prev => prev.filter((_, i) => i !== idx));
+    setSavedImageUrls(prev => prev.filter((_, i) => i !== idx));
   };
 
   const handleExtractAll = async () => {
@@ -202,7 +229,11 @@ export default function SnacksPage() {
 
     setCreating(true);
     try {
-      await snacksService.createMenu({ title: newTitle.trim(), items: validItems });
+      await snacksService.createMenu({
+        title: newTitle.trim(),
+        imageUrls: savedImageUrls.length > 0 ? savedImageUrls : undefined,
+        items: validItems,
+      });
       toast.success('Tạo menu thành công! Menu đã được kích hoạt.');
       setShowCreate(false);
       setNewTitle('');
@@ -210,6 +241,7 @@ export default function SnacksPage() {
       imagePreviews.forEach(url => URL.revokeObjectURL(url));
       setUploadedImages([]);
       setImagePreviews([]);
+      setSavedImageUrls([]);
       await fetchData();
     } catch (err: any) {
       toast.error(err.message || 'Lỗi tạo menu');
@@ -487,11 +519,15 @@ export default function SnacksPage() {
               </div>
             )}
 
+            {uploading && (
+              <p className="text-xs text-blue-500">Đang tải ảnh lên...</p>
+            )}
+
             {/* Extract button */}
             {uploadedImages.length > 0 && (
               <Button
                 onClick={handleExtractAll}
-                disabled={extracting}
+                disabled={extracting || uploading}
                 variant="secondary"
                 className="w-full"
               >
@@ -534,7 +570,7 @@ export default function SnacksPage() {
             >+ Thêm món</Button>
           </div>
 
-          <Button onClick={handleCreateMenu} disabled={creating} className="w-full">
+          <Button onClick={handleCreateMenu} disabled={creating || uploading} className="w-full">
             {creating ? 'Đang tạo...' : '✅ Tạo & Kích hoạt menu'}
           </Button>
         </Card>
@@ -580,6 +616,13 @@ export default function SnacksPage() {
                 </div>
               </div>
             </button>
+
+            {/* Menu images */}
+            {menu.image_urls && menu.image_urls.length > 0 && (
+              <div className="px-4 pb-2">
+                <ImageGallery images={menu.image_urls} baseUrl={API_BASE_URL} />
+              </div>
+            )}
 
             {/* Expanded: my order summary + items + who ordered */}
             {expandedActiveMenu && (
@@ -740,6 +783,13 @@ export default function SnacksPage() {
                       </div>
                     </div>
                   </button>
+
+                  {/* Menu images */}
+                  {m.image_urls && m.image_urls.length > 0 && (
+                    <div className="mt-2">
+                      <ImageGallery images={m.image_urls} baseUrl={API_BASE_URL} />
+                    </div>
+                  )}
 
                   {/* Expandable order details */}
                   {isExpanded && (

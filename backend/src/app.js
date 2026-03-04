@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 require('dotenv').config();
 
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
@@ -14,6 +15,7 @@ const adminRoutes = require('./routes/admin');
 const snackRoutes = require('./routes/snacks');
 const webSnackRoutes = require('./routes/webSnacks');
 const reimbursementRoutes = require('./routes/reimbursements');
+const notificationRoutes = require('./routes/notifications');
 
 const app = express();
 
@@ -44,6 +46,9 @@ const authLimiter = rateLimit({
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
 // Request logging (development only)
 if (process.env.NODE_ENV === 'development') {
   app.use((req, res, next) => {
@@ -73,6 +78,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/snacks', webSnackRoutes); // web: /menus/*, /orders/*, /upload
 app.use('/api/snacks', snackRoutes);    // mobile: /, /:id, /:id/items, /:id/settle
 app.use('/api/reimbursements', reimbursementRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Welcome route
 app.get('/', (req, res) => {

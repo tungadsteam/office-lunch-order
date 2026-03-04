@@ -10,6 +10,7 @@ import { transactionsService } from '@/lib/api/services/transactions';
 import { ordersService } from '@/lib/api/services/orders';
 import { formatDate } from '@/lib/utils/formatters';
 import { toast } from 'sonner';
+import BroadcastForm from '@/components/admin/BroadcastForm';
 
 const SESSION_STATUS_LABELS: Record<string, string> = {
   ordering: '🟢 Đang nhận đơn',
@@ -125,6 +126,9 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+
+      {/* Broadcast notification */}
+      <BroadcastForm />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Link href="/admin/deposits">

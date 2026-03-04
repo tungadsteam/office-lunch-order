@@ -302,7 +302,7 @@ export default function OrderPage() {
 
           {/* Join/Leave action button */}
           {canOrder && (
-            <div className="sticky bottom-20 md:bottom-4">
+            <div className="pt-2 pb-4">
               {isJoined ? (
                 <Button
                   variant="destructive"

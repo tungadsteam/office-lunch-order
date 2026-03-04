@@ -14,4 +14,7 @@ export const adminService = {
 
   updateSetting: (key: string, value: string) =>
     client.put(`/admin/settings/${key}`, { value }),
+
+  broadcast: (title: string, body: string) =>
+    client.post('/admin/broadcast', { title, body }),
 };

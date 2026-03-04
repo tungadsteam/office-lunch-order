@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useAuthStore } from '@/lib/store/authStore';
 import { transactionsService } from '@/lib/api/services/transactions';
-import { adminService } from '@/lib/api/services/admin';
 import { formatCurrency, formatDateTime } from '@/lib/utils/formatters';
 import { Transaction } from '@/lib/types/transaction';
 import { toast } from 'sonner';
@@ -29,7 +28,7 @@ export default function BalancePage() {
 
   useEffect(() => {
     loadDeposits();
-    adminService.getBankInfo().then((res: any) => {
+    transactionsService.getBankInfo().then((res: any) => {
       setBankInfo(res.data || {});
     }).catch(() => {});
   }, []);

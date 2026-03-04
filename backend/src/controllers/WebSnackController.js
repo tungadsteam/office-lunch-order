@@ -1,4 +1,9 @@
 const pool = require('../config/database');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+
+const UPLOADS_DIR = path.join(__dirname, '..', '..', 'uploads', 'snacks');
 
 /**
  * WebSnackController
@@ -21,7 +26,7 @@ class WebSnackController {
     try {
       const result = await pool.query(`
         SELECT
-          sm.id, sm.title, sm.status, sm.total_amount, sm.created_at,
+          sm.id, sm.title, sm.status, sm.total_amount, sm.created_at, sm.image_urls,
           u.id AS creator_id, u.name AS creator_name,
           COUNT(DISTINCT smi.id) AS item_count,
           COUNT(DISTINCT suo.user_id) AS order_count,
@@ -114,7 +119,7 @@ class WebSnackController {
    */
   async createMenu(req, res) {
     try {
-      const { title, imageUrl, items } = req.body;
+      const { title, imageUrls, items } = req.body;
       const userId = req.user.id;
 
       if (!title || !title.trim()) {
@@ -124,15 +129,18 @@ class WebSnackController {
         return res.status(400).json({ success: false, message: 'Menu cần ít nhất 1 món' });
       }
 
+      const imageUrlsJson = Array.isArray(imageUrls) && imageUrls.length > 0
+        ? JSON.stringify(imageUrls) : null;
+
       const client = await pool.connect();
       try {
         await client.query('BEGIN');
 
         const menuResult = await client.query(`
-          INSERT INTO snack_menus (title, created_by, status, notes)
+          INSERT INTO snack_menus (title, created_by, status, image_urls)
           VALUES ($1, $2, 'ordering', $3)
           RETURNING *
-        `, [title.trim(), userId, imageUrl || null]);
+        `, [title.trim(), userId, imageUrlsJson]);
 
         const menu = menuResult.rows[0];
 
@@ -546,6 +554,51 @@ class WebSnackController {
       console.error('cancelOrder error:', error);
       res.status(500).json({ success: false, message: 'Hủy thất bại' });
     }
+  }
+
+  // ─── IMAGE UPLOAD / DELETE ───────────────────────────────────
+
+  /**
+   * POST /snacks/images
+   * Upload a single image, save to disk, return URL.
+   */
+  async uploadImage(req, res) {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Không có ảnh' });
+    }
+
+    // Ensure uploads dir exists
+    if (!fs.existsSync(UPLOADS_DIR)) {
+      fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    }
+
+    const ext = path.extname(req.file.originalname) || '.jpg';
+    const filename = `${Date.now()}-${crypto.randomBytes(6).toString('hex')}${ext}`;
+    const filepath = path.join(UPLOADS_DIR, filename);
+
+    fs.writeFileSync(filepath, req.file.buffer);
+
+    const imageUrl = `/uploads/snacks/${filename}`;
+    res.json({ success: true, data: { url: imageUrl, filename } });
+  }
+
+  /**
+   * DELETE /snacks/images/:filename
+   * Delete an uploaded image from disk.
+   */
+  async deleteImage(req, res) {
+    const { filename } = req.params;
+    // Prevent path traversal
+    if (filename.includes('..') || filename.includes('/')) {
+      return res.status(400).json({ success: false, message: 'Tên file không hợp lệ' });
+    }
+
+    const filepath = path.join(UPLOADS_DIR, filename);
+    if (fs.existsSync(filepath)) {
+      fs.unlinkSync(filepath);
+    }
+
+    res.json({ success: true, message: 'Đã xóa ảnh' });
   }
 
   // ─── AI IMAGE EXTRACTION ─────────────────────────────────────
