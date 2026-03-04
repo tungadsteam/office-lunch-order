@@ -45,7 +45,7 @@ const Header = () => {
                 <Link href="/" className="text-gray-600 hover:text-gray-800">Home</Link>
                 <Link href="/history" className="text-gray-600 hover:text-gray-800">History</Link>
                 <Link href="/reimbursement" className="text-gray-600 hover:text-gray-800">Reimbursement</Link>
-                {user.is_admin && (
+                {user.role === 'admin' && (
                   <Link href="/admin" className="text-gray-600 hover:text-gray-800 font-bold">Admin</Link>
                 )}
                 <button onClick={handleLogout} className="bg-red-500 text-white px-3 py-1 rounded">Logout</button>
@@ -68,7 +68,7 @@ const Header = () => {
               <Link href="/" className="block text-gray-600" onClick={() => setMenuOpen(false)}>Home</Link>
               <Link href="/history" className="block text-gray-600" onClick={() => setMenuOpen(false)}>History</Link>
               <Link href="/reimbursement" className="block text-gray-600" onClick={() => setMenuOpen(false)}>Reimbursement</Link>
-              {user.is_admin && (
+              {user.role === 'admin' && (
                 <Link href="/admin" className="block text-gray-600 font-bold" onClick={() => setMenuOpen(false)}>Admin</Link>
               )}
               <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="w-full text-left bg-red-500 text-white px-3 py-1 rounded">Logout</button>
