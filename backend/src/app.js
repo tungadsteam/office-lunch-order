@@ -46,8 +46,11 @@ const authLimiter = rateLimit({
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 
-// Serve uploaded files
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+// Serve uploaded files (allow cross-origin for frontend on different subdomain)
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+}, express.static(path.join(__dirname, '..', 'uploads')));
 
 // Request logging (development only)
 if (process.env.NODE_ENV === 'development') {
