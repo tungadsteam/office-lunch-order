@@ -23,7 +23,7 @@ export default function PaymentScreen({ navigation }: any) {
     const amount = parseInt(totalBill.replace(/[^0-9]/g, ''), 10);
     Alert.alert(
       'Xác nhận thanh toán',
-      `Tổng hóa đơn: ${formatCurrency(amount)}\n\nSố tiền sẽ được chia đều cho tất cả người đặt cơm.`,
+      `Tổng hóa đơn: ${formatCurrency(amount)}\n\nSố tiền sẽ được chia đều cho tất cả người đặt cơm.\nAdmin sẽ chuyển khoản ${formatCurrency(amount)} lại cho bạn.`,
       [
         { text: 'Hủy', style: 'cancel' },
         {
@@ -32,7 +32,9 @@ export default function PaymentScreen({ navigation }: any) {
             setLoading(true);
             try {
               const result = await orderService.submitPayment(amount);
-              Alert.alert('✅ Thành công', `Đã quyết toán!\n${result.data?.participants} người × ${formatCurrency(result.data?.amount_per_person || 0)}`, [
+              const msg = result.data?.message ||
+                `${result.data?.participants} người × ${formatCurrency(result.data?.amount_per_person || 0)}\n\nAdmin sẽ chuyển khoản ${formatCurrency(amount)} cho bạn. Kiểm tra mục "Hoàn tiền" để theo dõi.`;
+              Alert.alert('✅ Thành công', msg, [
                 { text: 'OK', onPress: () => navigation.goBack() },
               ]);
             } catch (err: any) {
@@ -51,11 +53,11 @@ export default function PaymentScreen({ navigation }: any) {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.content}>
           <Card title="💰 Nhập hóa đơn">
-            <Text style={styles.desc}>Nhập tổng số tiền bạn đã thanh toán. Hệ thống sẽ tự động chia đều cho tất cả người đặt cơm.</Text>
+            <Text style={styles.desc}>Nhập số tiền thực tế bạn đã thanh toán. Hệ thống sẽ chia đều cho tất cả người đặt cơm hôm nay.</Text>
             <Input label="Tổng tiền hóa đơn (VND)" placeholder="500000" keyboardType="numeric" value={totalBill} onChangeText={setTotalBill} error={error || undefined} />
             <Input label="Ghi chú (tùy chọn)" placeholder="Quán Cơm Tấm 37" value={note} onChangeText={setNote} />
 
-            <Text style={styles.warning}>⚠️ Sau khi xác nhận, bạn sẽ được +tiền (reimbursement), tất cả người đặt sẽ bị -tiền (chia đều).</Text>
+            <Text style={styles.warning}>⚠️ Sau khi xác nhận, tất cả người đặt sẽ bị trừ tiền đều nhau. Admin sẽ chuyển khoản tổng tiền cho bạn — theo dõi tại mục "Hoàn tiền".</Text>
 
             <Button title="Xác nhận thanh toán" onPress={handleSubmit} loading={loading} disabled={!totalBill} style={{ marginTop: spacing.md }} />
             <Button title="Quay lại" variant="ghost" onPress={() => navigation.goBack()} style={{ marginTop: spacing.sm }} />
