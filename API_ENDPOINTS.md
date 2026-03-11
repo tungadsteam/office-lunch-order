@@ -8,7 +8,7 @@ Production: https://api.yourdomain.com (when deployed to cloud)
 
 ## 🔐 Authentication
 All endpoints (except `/health`, `/api/auth/register`, `/api/auth/login`) require JWT token:
-
+avd
 ```
 Authorization: Bearer <jwt_token>
 ```

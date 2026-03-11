@@ -48,10 +48,22 @@ class BuyerSelectionService {
         ORDER BY u.rotation_index ASC, u.last_bought_date ASC NULLS FIRST
       `, [sessionId]);
       
-      const participants = ordersResult.rows;
-      
+      let participants = ordersResult.rows;
+
+      // Fallback: no orders yet → use all active users (for admin force-select / testing)
       if (participants.length === 0) {
-        throw new Error('No confirmed orders for today');
+        const allUsersResult = await client.query(`
+          SELECT id as user_id, name, email, rotation_index,
+                 last_bought_date, total_bought_times, fcm_token
+          FROM users
+          WHERE is_active = true
+          ORDER BY rotation_index ASC, last_bought_date ASC NULLS FIRST
+        `);
+        participants = allUsersResult.rows;
+      }
+
+      if (participants.length === 0) {
+        throw new Error('No active users found');
       }
       
       // 3. Get yesterday's buyers

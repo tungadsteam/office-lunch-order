@@ -45,8 +45,17 @@ router.post('/today/select-buyers',
 );
 
 /**
+ * POST /orders/today/claim-payment
+ * One of the 4 buyers claims they will pay the bill today
+ */
+router.post('/today/claim-payment',
+  authenticate,
+  asyncHandler(OrderController.claimPayment.bind(OrderController))
+);
+
+/**
  * POST /orders/today/payment
- * Submit payment (Buyer only)
+ * Submit actual bill amount (only the buyer who claimed)
  */
 router.post('/today/payment',
   authenticate,
@@ -56,6 +65,26 @@ router.post('/today/payment',
   ],
   validate,
   asyncHandler(OrderController.submitPayment.bind(OrderController))
+);
+
+/**
+ * GET /orders/sessions
+ * List all recent sessions (Admin only)
+ */
+router.get('/sessions',
+  authenticate,
+  requireAdmin,
+  asyncHandler(OrderController.getSessions.bind(OrderController))
+);
+
+/**
+ * POST /orders/sessions/:id/select-buyers
+ * Select buyers for any session by ID (Admin only)
+ */
+router.post('/sessions/:id/select-buyers',
+  authenticate,
+  requireAdmin,
+  asyncHandler(OrderController.selectBuyersById.bind(OrderController))
 );
 
 /**

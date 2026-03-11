@@ -11,6 +11,7 @@ Hệ thống quản lý quỹ cơm trưa tập thể cho văn phòng.
 
 ## 🛠 Tech Stack
 
+- **Web:** Next.js 14
 - **Mobile:** React Native (iOS)
 - **Backend:** Node.js + Express
 - **Database:** PostgreSQL
@@ -63,6 +64,20 @@ office-lunch-order/
 **Screens:** 8 implemented
 
 ---
+
+### 🐳 Run with Docker Compose (backend + web + db)
+
+```bash
+docker compose up -d --build
+
+# Backend health
+curl http://localhost:3000/health
+
+# Web UI
+open http://localhost:3001
+```
+
+If you deploy to a server, set `NEXT_PUBLIC_API_BASE_URL` to a URL reachable by browsers.
 
 ### 🧪 Quick Test Backend
 
